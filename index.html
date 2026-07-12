@@ -47,14 +47,13 @@
         <!-- ================= STRÁNKA: DOMŮ ================= -->
         <div id="tab-home-view" class="space-y-5 tab-view">
             
-            <!-- WIDGET: TÝDENNÍ PROGRESS ROW (Inspirováno tvým screenem) -->
+            <!-- WIDGET: TÝDENNÍ PROGRESS ROW -->
             <div class="glass-card rounded-2xl p-4 flex flex-col items-center">
                 <div class="w-full flex justify-between items-center mb-3 px-1 text-xs text-zinc-400 font-medium">
                     <span class="flex items-center gap-1"><i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> <strong class="text-white" id="streak-count">1</strong> DNÍ SÉRIE</span>
                     <span id="current-date-str" class="text-[11px] text-zinc-500"></span>
                 </div>
                 <div class="grid grid-cols-7 gap-2.5 w-full text-center">
-                    <!-- Dny generované pomocí JS -->
                     <div id="week-day-0" class="flex flex-col items-center"><span class="text-[10px] text-zinc-500 uppercase font-bold mb-1.5">Po</span><div class="w-7 h-7 rounded-full bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-xs"><i data-lucide="circle" class="w-3.5 h-3.5 text-zinc-600"></i></div></div>
                     <div id="week-day-1" class="flex flex-col items-center"><span class="text-[10px] text-zinc-500 uppercase font-bold mb-1.5">Út</span><div class="w-7 h-7 rounded-full bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-xs"><i data-lucide="circle" class="w-3.5 h-3.5 text-zinc-600"></i></div></div>
                     <div id="week-day-2" class="flex flex-col items-center"><span class="text-[10px] text-zinc-500 uppercase font-bold mb-1.5">St</span><div class="w-7 h-7 rounded-full bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-xs"><i data-lucide="circle" class="w-3.5 h-3.5 text-zinc-600"></i></div></div>
@@ -75,15 +74,12 @@
                     </div>
                 </div>
                 
-                <!-- Progress bar -->
                 <div class="w-full bg-zinc-800 rounded-full h-3 mb-5 overflow-hidden border border-zinc-700/50">
                     <div id="water-bar" class="bg-gradient-to-r from-blue-500 to-sky-400 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
 
-                <!-- Tlačítka s opravenými ikonami -->
                 <div class="grid grid-cols-3 gap-2.5">
                     <button onclick="addWater(900, 'Stanley Cup')" class="bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/60 rounded-2xl p-3 flex flex-col items-center justify-center transition-transform active:scale-95">
-                        <!-- Custom Stanley Cup SVG s uchem a brčkem -->
                         <svg class="w-6 h-6 text-blue-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M17 8h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1" />
                             <path d="M6 6h10v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" />
@@ -104,10 +100,7 @@
                     </button>
                 </div>
 
-                <!-- Seznam dnešní vody pro mazání chyb -->
-                <div id="water-today-logs" class="mt-4 pt-3 border-t border-zinc-800/60 space-y-1.5 text-xs text-zinc-400 hidden">
-                    <!-- JS injectuje záznamy -->
-                </div>
+                <div id="water-today-logs" class="mt-4 pt-3 border-t border-zinc-800/60 space-y-1.5 text-xs text-zinc-400 hidden"></div>
             </div>
 
             <!-- KARTA: JÍDLO -->
@@ -132,14 +125,11 @@
                     </button>
                 </div>
                 
-                <!-- Log jídla s možností mazat položky -->
-                <div id="food-log" class="mt-4 space-y-1.5 max-h-36 overflow-y-auto pt-3 border-t border-zinc-800/60 hidden">
-                    <!-- JS inject -->
-                </div>
+                <div id="food-log" class="mt-4 space-y-1.5 max-h-36 overflow-y-auto pt-3 border-t border-zinc-800/60 hidden"></div>
             </div>
         </div>
 
-        <!-- ================= STRÁNKA: VITAMÍNY (DEDIKOVANÝ TAB) ================= -->
+        <!-- ================= STRÁNKA: VITAMÍNY ================= -->
         <div id="tab-vitamins-view" class="space-y-4 tab-view hidden">
             <div class="glass-card rounded-3xl p-5 glow-purple bg-gradient-to-b from-zinc-900 via-zinc-900 to-purple-950/10">
                 <p class="text-xs text-purple-400 font-bold uppercase tracking-wider mb-1">Denní suplementace</p>
@@ -182,10 +172,8 @@
             </div>
         </div>
 
-        <!-- ================= STRÁNKA: NASTAVENÍ & NOTIFIKACE ================= -->
+        <!-- ================= STRÁNKA: NASTAVENÍ ================= -->
         <div id="tab-settings-view" class="space-y-5 tab-view hidden">
-            
-            <!-- NASTAVENÍ NOTIFIKACÍ -->
             <div class="glass-card rounded-3xl p-5">
                 <div class="flex items-center space-x-2.5 mb-4">
                     <div class="p-2 bg-blue-500/10 text-blue-400 rounded-xl"><i data-lucide="bell" class="w-5 h-5"></i></div>
@@ -193,7 +181,6 @@
                 </div>
                 
                 <div class="space-y-4">
-                    <!-- Hlavní switch -->
                     <div class="flex justify-between items-center bg-zinc-900/50 p-3 rounded-xl border border-zinc-800">
                         <div>
                             <p class="text-sm font-bold text-zinc-200">Připomínky pití režimu</p>
@@ -204,19 +191,17 @@
                         </button>
                     </div>
 
-                    <!-- Volba intervalu -->
                     <div id="notif-interval-box" class="space-y-2 opacity-50 pointer-events-none transition-opacity">
                         <p class="text-xs font-semibold text-zinc-400">Interval připomínání:</p>
                         <div class="grid grid-cols-3 gap-2">
-                            <button onclick="setNotificationInterval(60)" id="interval-60" class="bg-zinc-800 border border-zinc-700 py-2 rounded-xl text-xs font-bold text-zinc-300">Každou 1h</button>
-                            <button onclick="setNotificationInterval(120)" id="interval-120" class="bg-zinc-800 border border-zinc-700 py-2 rounded-xl text-xs font-bold text-zinc-300">Každé 2h</button>
-                            <button onclick="setNotificationInterval(180)" id="interval-180" class="bg-zinc-800 border border-zinc-700 py-2 rounded-xl text-xs font-bold text-zinc-300">Každé 3h</button>
+                            <button onclick="setNotificationInterval(60)" id="interval-60" class="bg-zinc-800 border border-zinc-700 py-2 rounded-xl text-xs font-bold text-zinc-400">Každou 1h</button>
+                            <button onclick="setNotificationInterval(120)" id="interval-120" class="bg-zinc-800 border border-zinc-700 py-2 rounded-xl text-xs font-bold text-zinc-400">Každé 2h</button>
+                            <button onclick="setNotificationInterval(180)" id="interval-180" class="bg-zinc-800 border border-zinc-700 py-2 rounded-xl text-xs font-bold text-zinc-400">Každé 3h</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CLOUD HISTORIE (ZÁLOHA) -->
             <div class="glass-card rounded-3xl p-5">
                 <h2 class="font-bold text-sm text-zinc-400 uppercase tracking-wider mb-3">Zálohované dny v cloudu</h2>
                 <div id="history-list" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
@@ -230,38 +215,35 @@
 
     </div>
 
-    <!-- SPODNÍ NAVIGAČNÍ PANEL (AMOLED BLACK STYLE) -->
+    <!-- SPODNÍ NAVIGAČNÍ PANEL -->
     <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800/80 px-4 py-3 flex justify-around items-center shadow-2xl rounded-t-3xl z-50">
-        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center text-blue-500 transition-colors"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-1">Domů</span></button>
+        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center text-blue-400 transition-colors"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-1">Domů</span></button>
         <button onclick="switchTab('vitamins')" id="nav-vitamins" class="flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-colors"><i data-lucide="pill" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-1">Vitamíny</span></button>
         <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-colors"><i data-lucide="settings" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-1">Nastavení</span></button>
     </div>
 
     <script>
-        // --- TADY VLOŽ SVŮJ LINK Z GOOGLE DISKU PŘED COMMITem ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqRrJ07skZKFusk_YjwmwHSaS2Nf_MO0dBqZBr4_Qpqt26HnZIiWBk4xVdsfLYKmu/exec";
+        // IMPLEMENTOVANÁ TVOJE ADRESA Z GOOGLE DISKU
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqRrJO7skZKFusk_YjWmwHSaSs2Nf_MO0dBqZBr4_Qpqt26HnZIiWBk4xVdsfLYKmu/exec";
         
         const WATER_GOAL = 3000;
         let today = new Date().toISOString().split('T')[0];
         
-        // Struktura vylepšeného state
         let state = JSON.parse(localStorage.getItem('app_tracker_state')) || {};
         let config = JSON.parse(localStorage.getItem('app_tracker_config')) || { notifEnabled: false, notifInterval: 120 };
 
         if (!state[today]) {
             state[today] = { water: 0, waterLogs: [], vitamins: { ashwagandha: false, multivitamin: false, kreatin: false }, food: [] };
         }
-        // Validace starších verzí databází na polyfill polí
         if(!state[today].waterLogs) state[today].waterLogs = [];
 
         let notifTimer = null;
 
-        // TÁBOVÁNÍ (ZÁLOŽKY)
         function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
-            document.querySelectorAll('nav-home, #nav-vitamins, #nav-settings').forEach(btn => {
-                if(btn) btn.className = "flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-colors";
-            });
+            document.getElementById('nav-home').className = "flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-colors";
+            document.getElementById('nav-vitamins').className = "flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-colors";
+            document.getElementById('nav-settings').className = "flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-colors";
             
             if (tabId === 'home') {
                 document.getElementById('tab-home-view').classList.remove('hidden');
@@ -278,7 +260,6 @@
             }
         }
 
-        // FUNKCE: PŘIDÁNÍ VODY
         function addWater(amount, type) {
             let id = Date.now();
             let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
@@ -287,24 +268,20 @@
             saveAndSync();
         }
 
-        // FUNKCE: MAZÁNÍ VODY (CHYBNÉ KLIKNUTÍ)
         function removeWaterLog(id) {
             let logIndex = state[today].waterLogs.findIndex(l => l.id === id);
             if(logIndex !== -1) {
-                state[today].water.water -= state[today].waterLogs[logIndex].amount; // safety fallback
                 state[today].water = Math.max(0, state[today].water - state[today].waterLogs[logIndex].amount);
                 state[today].waterLogs.splice(logIndex, 1);
                 saveAndSync();
             }
         }
 
-        // FUNKCE: SUPLENENTY
         function toggleVitamin(vitId) {
             state[today].vitamins[vitId] = !state[today].vitamins[vitId];
             saveAndSync();
         }
 
-        // FUNKCE: JÍDLO
         function logFood(name, emoji) {
             let id = Date.now();
             let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
@@ -312,7 +289,6 @@
             saveAndSync();
         }
 
-        // FUNKCE: MAZÁNÍ JÍDLA
         function removeFoodLog(id) {
             state[today].food = state[today].food.filter(f => f.id !== id);
             saveAndSync();
@@ -324,20 +300,17 @@
             syncWithGoogle();
         }
 
-        // AKTUALIZACE CELÉHO GRAFICKÉHO ROZHRANÍ
         function updateUI() {
             let data = state[today];
             
-            // Voda texty a progress bar
             document.getElementById('water-current-text').innerText = data.water;
             let pct = Math.min(Math.round((data.water / WATER_GOAL) * 100), 100);
             document.getElementById('water-bar').style.width = pct + '%';
 
-            // Logs vody pro případné smazání chyby
             let waterLogBox = document.getElementById('water-today-logs');
             if(data.waterLogs && data.waterLogs.length > 0) {
                 waterLogBox.classList.remove('hidden');
-                waterLogBox.innerHTML = `<p class="text-[10px] text-zinc-500 font-bold uppercase mb-1">Dnešní pití (klikni na koš pro smazání chyby):</p>` + data.waterLogs.map(l => `
+                waterLogBox.innerHTML = `<p class="text-[10px] text-zinc-500 font-bold uppercase mb-1">Dnešní pití (klikni pro smazání chyby):</p>` + data.waterLogs.map(l => `
                     <div class="flex justify-between items-center bg-zinc-900/60 p-2 rounded-xl border border-zinc-800/40">
                         <span>💧 ${l.type} <strong class="text-zinc-200">${l.amount}ml</strong> v ${l.time}</span>
                         <button onclick="removeWaterLog(${l.id})" class="text-zinc-600 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
@@ -347,7 +320,6 @@
                 waterLogBox.classList.add('hidden');
             }
 
-            // Vitamíny checkboxy
             for (let vit in data.vitamins) {
                 let element = document.getElementById('vit-' + vit);
                 if(element) {
@@ -362,7 +334,6 @@
                 }
             }
 
-            // Jídlo feed s košem
             let foodLog = document.getElementById('food-log');
             if(data.food.length > 0) {
                 foodLog.classList.remove('hidden');
@@ -376,22 +347,15 @@
                 foodLog.classList.add('hidden');
             }
 
-            // STYLOVÁNÍ KALENDÁŘE (WIDGETU) PODLE PROGRESU V TÝDNU
             updateCalendarWidget();
-
-            // Historie v nastavení
             updateCloudHistoryUI();
-
-            // Nastavení stavu notifikací v UI
             updateNotifSettingsUI();
-
             lucide.createIcons();
         }
 
-        // LOGIKA PRO KROUŽKY DNÍ (VÝPOČET TÝDNE)
         function updateCalendarWidget() {
             let current = new Date();
-            let currentDayOfWeek = current.getDay(); // 0 is Sun, 1 is Mon...
+            let currentDayOfWeek = current.getDay();
             let mondayOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
             
             let monday = new Date(current);
@@ -412,7 +376,6 @@
                 
                 let dayElement = document.getElementById(`week-day-${i}`).querySelector('div');
                 
-                // Určení barev kroužku podle splnění limitu
                 if (loopKey === today) {
                     dayElement.className = "w-7 h-7 rounded-full bg-blue-500/10 border-2 border-blue-400 flex items-center justify-center text-xs text-white font-bold shadow-[0_0_10px_rgba(59,130,246,0.4)]";
                     if(dayPct >= 1) dayElement.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>';
@@ -458,12 +421,10 @@
             }
         }
 
-        // ================= NOTIFIKAČNÍ SYSTÉM (MANAGEMENT) =================
         function updateNotifSettingsUI() {
             const btn = document.getElementById('btn-notif-toggle');
             const box = document.getElementById('notif-interval-box');
             
-            // Vyčištění starých aktivních stylů intervalu
             document.querySelectorAll('[id^="interval-"]').forEach(b => b.className = "bg-zinc-900 border border-zinc-800 py-2 rounded-xl text-xs font-bold text-zinc-400");
 
             if (config.notifEnabled) {
@@ -481,10 +442,7 @@
         }
 
         function toggleNotificationsSystem() {
-            if (!("Notification" in window)) {
-                alert("Tento prohlížeč nepodporuje notifikace.");
-                return;
-            }
+            if (!("Notification" in window)) return;
 
             if (!config.notifEnabled) {
                 Notification.requestPermission().then(permission => {
@@ -493,9 +451,6 @@
                         localStorage.setItem('app_tracker_config', JSON.stringify(config));
                         startNotificationEngine();
                         updateUI();
-                        new Notification("Bio-Tracker Pro", { body: "Připomínky aktivovány a nastaveny." });
-                    } else {
-                        alert("Povolte prosím notifikace v nastavení vašeho prohlížeče / iPhonu.");
                     }
                 });
             } else {
@@ -509,7 +464,7 @@
         function setNotificationInterval(minutes) {
             config.notifInterval = minutes;
             localStorage.setItem('app_tracker_config', JSON.stringify(config));
-            startNotificationEngine(); // Restart motoru s novým časem
+            startNotificationEngine();
             updateUI();
         }
 
@@ -521,7 +476,7 @@
             notifTimer = setInterval(() => {
                 if(state[today].water < WATER_GOAL) {
                     new Notification("Čas na hydrataci! 🥤", {
-                        body: `Dnes máš splněno jen ${state[today].water}ml. Dej si lok ze Stanley Cupu nebo plechovky!`,
+                        body: `Dnes máš splněno jen ${state[today].water}ml. Dej si lok ze Stanley Cupu!`,
                         icon: "https://cdn-icons-png.flaticon.com/512/3105/3105807.png"
                     });
                 }
@@ -535,9 +490,8 @@
             }
         }
 
-        // ================= GOOGLE SCRIPT CLOUD SYNC =================
         async function loadDataFromGoogle() {
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("SEM_VLOZ")) {
+            if (!GOOGLE_SCRIPT_URL) {
                 document.getElementById('loading-overlay').style.display = 'none';
                 return;
             }
@@ -562,7 +516,7 @@
         }
 
         async function syncWithGoogle() {
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("SEM_VLOZ")) return;
+            if (!GOOGLE_SCRIPT_URL) return;
             setSyncStatus("Ukládám...", "bg-amber-950/40 text-amber-400 border-amber-900/50", "refresh-cw", true);
             try {
                 await fetch(GOOGLE_SCRIPT_URL, {
@@ -588,13 +542,12 @@
         }
 
         function clearAllData() {
-            if(confirm('Totální reset smaže historii z mobilu. Chceš pokračovat?')) {
+            if(confirm('Opravdu vymazat historii z mobilu?')) {
                 localStorage.clear();
                 location.reload();
             }
         }
 
-        // Inicializace spuštění
         updateUI();
         loadDataFromGoogle();
         startNotificationEngine();
