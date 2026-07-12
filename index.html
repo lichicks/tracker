@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Bio-Tracker</title>
+    <!-- Tailwind CSS pro moderní design -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Lucide Ikony -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #fcf9f2; }
+        .glass { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="text-slate-800 pb-24">
+
+    <!-- HLAVIČKA -->
+    <div class="max-w-md mx-auto px-6 pt-8 pb-4 flex justify-between items-center">
+        <div>
+            <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Ahoj, vítej zpět</p>
+            <h1 class="text-2xl font-bold text-slate-900">Můj denní přehled</h1>
+        </div>
+        <button onclick="requestNotificationPermission()" class="p-3 bg-white rounded-full shadow-xs hover:bg-slate-100 relative">
+            <i data-lucide="bell" class="w-5 h-5 text-slate-600"></i>
+            <span id="notif-status" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+        </button>
+    </div>
+
+    <div class="max-w-md mx-auto px-4 space-y-6">
+        
+        <!-- VODA KARTA (Inspirováno Waterllama/Waterminder) -->
+        <div class="glass border border-white/40 rounded-3xl p-6 shadow-sm bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="font-bold text-lg text-slate-900">Hydratace</h2>
+                    <p class="text-sm text-slate-500" id="water-remaining">Zbývá 3000 ml</p>
+                </div>
+                <div class="bg-blue-500 text-white font-bold px-3 py-1 rounded-full text-sm" id="water-percentage">0%</div>
+            </div>
+            
+            <!-- Vizuální plnění vody -->
+            <div class="w-full bg-slate-200/60 rounded-full h-4 mb-6 overflow-hidden">
+                <div id="water-bar" class="bg-gradient-to-r from-blue-400 to-indigo-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <!-- Tlačítka pro rychlé přidání -->
+            <div class="grid grid-cols-3 gap-3">
+                <button onclick="addWater(900)" class="bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center justify-center transition-transform active:scale-95 shadow-xs">
+                    <i data-lucide="cup-loader" class="w-6 h-6 text-blue-500 mb-1"></i>
+                    <span class="text-xs font-bold text-slate-700">Stanley Cup</span>
+                    <span class="text-[10px] text-slate-400">900 ml</span>
+                </button>
+                <button onclick="addWater(500)" class="bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center justify-center transition-transform active:scale-95 shadow-xs">
+                    <i data-lucide="container" class="w-6 h-6 text-indigo-500 mb-1"></i>
+                    <span class="text-xs font-bold text-slate-700">Plechovka</span>
+                    <span class="text-[10px] text-slate-400">500 ml</span>
+                </button>
+                <button onclick="addWater(250)" class="bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center justify-center transition-transform active:scale-95 shadow-xs">
+                    <i data-lucide="glass-water" class="w-6 h-6 text-sky-400 mb-1"></i>
+                    <span class="text-xs font-bold text-slate-700">Sklenička</span>
+                    <span class="text-[10px] text-slate-400">250 ml</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- VITAMÍNY KARTA -->
+        <div class="glass border border-white/40 rounded-3xl p-6 shadow-sm">
+            <h2 class="font-bold text-lg text-slate-900 mb-4">Vitamíny & Suplementy</h2>
+            <div class="space-y-2">
+                <div onclick="toggleVitamin('ashwagandha')" id="vit-ashwagandha" class="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 cursor-pointer transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-purple-50 rounded-lg text-purple-500"><i data-lucide="leaf" class="w-5 h-5"></i></div>
+                        <span class="font-medium text-sm">Ashwagandha</span>
+                    </div>
+                    <div class="status-icon"><i data-lucide="circle" class="w-5 h-5 text-slate-300"></i></div>
+                </div>
+                <div onclick="toggleVitamin('multivitamin')" id="vit-multivitamin" class="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 cursor-pointer transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-orange-50 rounded-lg text-orange-500"><i data-lucide="pill" class="w-5 h-5"></i></div>
+                        <span class="font-medium text-sm">Multivitamin</span>
+                    </div>
+                    <div class="status-icon"><i data-lucide="circle" class="w-5 h-5 text-slate-300"></i></div>
+                </div>
+                <div onclick="toggleVitamin('kreatin')" id="vit-kreatin" class="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 cursor-pointer transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-emerald-50 rounded-lg text-emerald-500"><i data-lucide="zap" class="w-5 h-5"></i></div>
+                        <span class="font-medium text-sm">Kreatin</span>
+                    </div>
+                    <div class="status-icon"><i data-lucide="circle" class="w-5 h-5 text-slate-300"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- JÍDLO KARTA -->
+        <div class="glass border border-white/40 rounded-3xl p-6 shadow-sm">
+            <h2 class="font-bold text-lg text-slate-900 mb-2">Dnešní jídlo</h2>
+            <p class="text-xs text-slate-400 mb-4">Zaznamenej si, co jsi měl dnes k obědu/večeři</p>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="logFood('Bageterie Boulevard', '🥖')" class="bg-white hover:bg-slate-50 border border-slate-100 p-3 rounded-xl text-left flex items-center space-x-2 transition-transform active:scale-98">
+                    <span class="text-xl">🥖</span>
+                    <span class="text-xs font-semibold text-slate-700">Bageterie B.</span>
+                </button>
+                <button onclick="logFood('McDonald\'s', '🍔')" class="bg-white hover:bg-slate-50 border border-slate-100 p-3 rounded-xl text-left flex items-center space-x-2 transition-transform active:scale-98">
+                    <span class="text-xl">🍔</span>
+                    <span class="text-xs font-semibold text-slate-700">Mekáč</span>
+                </button>
+                <button onclick="logFood('Pizza', '🍕')" class="bg-white hover:bg-slate-50 border border-slate-100 p-3 rounded-xl text-left flex items-center space-x-2 transition-transform active:scale-98">
+                    <span class="text-xl">🍕</span>
+                    <span class="text-xs font-semibold text-slate-700">Pizza</span>
+                </button>
+                <button onclick="logFood('Domácí jídlo', '🍳')" class="bg-white hover:bg-slate-50 border border-slate-100 p-3 rounded-xl text-left flex items-center space-x-2 transition-transform active:scale-98">
+                    <span class="text-xl">🍳</span>
+                    <span class="text-xs font-semibold text-slate-700">Domácí jídlo</span>
+                </button>
+            </div>
+            
+            <!-- Log historie jídla -->
+            <div id="food-log" class="mt-4 space-y-1.5 max-h-32 overflow-y-auto pt-2 border-t border-slate-100 hidden">
+                <!-- Sem se vkládá jídlo -->
+            </div>
+        </div>
+
+        <!-- PROGRES SEKCE (HISTORIE) -->
+        <div class="glass border border-white/40 rounded-3xl p-6 shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-lg text-slate-900">Historie & Progres</h2>
+                <button onclick="clearAllData()" class="text-xs text-red-400 hover:text-red-500 font-medium">Resetovat data</button>
+            </div>
+            <div id="history-list" class="space-y-2 text-sm text-slate-500">
+                <!-- Sem se ukládají předchozí dny -->
+                <p class="text-center py-4 text-xs">Zatím tu nemáš žádný dlouhodobý progres. Data se začnou ukládat od zítra.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SPODNÍ NAVIGAČNÍ PANEL (ČISTĚ DEKORATIVNÍ / PRO ROZŠÍŘENÍ) -->
+    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-md border-t border-slate-100 px-6 py-3 flex justify-around items-center shadow-lg rounded-t-3xl z-50">
+        <button class="flex flex-col items-center text-blue-500"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-0.5">Domů</span></button>
+        <button onclick="alert('Grafy se otevřou za týden, až appka nasbírá data!')" class="flex flex-col items-center text-slate-400 hover:text-slate-600"><i data-lucide="bar-chart-3" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-0.5">Progres</span></button>
+    </div>
+
+    <script>
+        // NASTAVENÍ CÍLŮ
+        const WATER_GOAL = 3000;
+        
+        // LOGIKA PRO UKLÁDÁNÍ DO LOCALSTORAGE
+        let today = new Date().toISOString().split('T')[0];
+        let state = JSON.parse(localStorage.getItem('app_tracker_state')) || {};
+        
+        if (!state[today]) {
+            state[today] = { water: 0, vitamins: { ashwagandha: false, multivitamin: false, kreatin: false }, food: [] };
+        }
+
+        // FUNKCE PRO VODU
+        function addWater(amount) {
+            state[today].water += amount;
+            saveState();
+            updateUI();
+        }
+
+        // FUNKCE PRO VITAMÍNY
+        function toggleVitamin(vitId) {
+            state[today].vitamins[vitId] = !state[today].vitamins[vitId];
+            saveState();
+            updateUI();
+        }
+
+        // FUNKCE PRO JÍDLO
+        function logFood(name, emoji) {
+            let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+            state[today].food.push({ name, emoji, time });
+            saveState();
+            updateUI();
+        }
+
+        function saveState() {
+            localStorage.setItem('app_tracker_state', JSON.stringify(state));
+        }
+
+        // AKTUALIZACE GRAFIKY A TEXTŮ
+        function updateUI() {
+            let data = state[today];
+            
+            // Voda
+            let pct = Math.min(Math.round((data.water / WATER_GOAL) * 100), 100);
+            document.getElementById('water-bar').style.width = pct + '%';
+            document.getElementById('water-percentage').innerText = pct + '%';
+            let remaining = Math.max(WATER_GOAL - data.water, 0);
+            document.getElementById('water-remaining').innerText = remaining > 0 ? `Zbývá ${remaining} ml` : 'Splněno! Dobrá práce. 🎉';
+
+            // Vitamíny
+            for (let vit in data.vitamins) {
+                let element = document.getElementById('vit-' + vit);
+                let iconWrapper = element.querySelector('.status-icon');
+                if (data.vitamins[vit]) {
+                    element.classList.add('bg-slate-100', 'opacity-60');
+                    iconWrapper.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>';
+                } else {
+                    element.classList.remove('bg-slate-100', 'opacity-60');
+                    iconWrapper.innerHTML = '<i data-lucide="circle" class="w-5 h-5 text-slate-300"></i>';
+                }
+            }
+
+            // Jídlo list
+            let foodLog = document.getElementById('food-log');
+            if(data.food.length > 0) {
+                foodLog.classList.remove('hidden');
+                foodLog.innerHTML = data.food.map(f => `
+                    <div class="flex justify-between items-center bg-white/40 p-2 rounded-lg text-xs border border-slate-100">
+                        <span>${f.emoji} <strong class="text-slate-700">${f.name}</strong></span>
+                        <span class="text-slate-400">${f.time}</span>
+                    </div>
+                `).join('');
+            } else {
+                foodLog.classList.add('hidden');
+            }
+
+            // Historie (Progres)
+            let historyList = document.getElementById('history-list');
+            let keys = Object.keys(state).filter(k => k !== today).sort().reverse();
+            if(keys.length > 0) {
+                historyList.innerHTML = keys.map(k => {
+                    let dayData = state[k];
+                    let vitsDone = Object.values(dayData.vitamins).filter(Boolean).length;
+                    return `
+                        <div class="bg-white p-3 rounded-2xl border border-slate-100 flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-slate-800">${new Date(k).toLocaleDateString('cs-CZ', {day: 'numeric', month: 'short'})}</span>
+                                <span class="text-xs text-slate-400 ml-2">Voda: ${dayData.water}ml</span>
+                            </div>
+                            <div class="text-xs font-semibold ${vitsDone === 3 ? 'text-emerald-500' : 'text-amber-500'}">
+                                Vitamíny: ${vitsDone}/3
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            lucide.createIcons();
+        }
+
+        // LOKÁLNÍ NOTIFIKACE (Fungují, když je web otevřený na pozadí)
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                alert("Tento prohlížeč nepodporuje notifikace.");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    document.getElementById('notif-status').classList.remove('hidden');
+                    // První testovací notifikace za 3 vteřiny
+                    setTimeout(() => {
+                        new Notification("Daily Bio-Tracker", { body: "Notifikace aktivovány! Každé dvě hodiny ti připomenu napít se.", icon: "https://cdn-icons-png.flaticon.com/512/3105/3105807.png" });
+                    }, 3000);
+                    
+                    // Cyklus připomínání každé 2 hodiny (v milisekundách)
+                    setInterval(() => {
+                        new Notification("Čas na vodu! 🥤", { body: "Dej si lok z tvého Stanley Cupu nebo plechovky, ať držíš flow.", icon: "https://cdn-icons-png.flaticon.com/512/3105/3105807.png" });
+                    }, 1000 * 60 * 60 * 2); 
+                }
+            });
+        }
+
+        function clearAllData() {
+            if(confirm('Opravdu chceš smazat celou historii trackeru?')) {
+                localStorage.removeItem('app_tracker_state');
+                location.reload();
+            }
+        }
+
+        // Spuštění při načtení
+        updateUI();
+    </script>
+</body>
+</html>
