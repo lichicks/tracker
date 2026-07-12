@@ -10,16 +10,25 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #09090b; color: #f4f4f5; -webkit-tap-highlight-color: transparent; }
         .glass-card { background: rgba(20, 20, 23, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(63, 63, 70, 0.35); }
         .glow-active { box-shadow: 0 0 35px -5px rgba(56, 189, 248, 0.2); }
+        .glow-fire { box-shadow: 0 0 30px 0px rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.5); }
         
         /* Blurred Material Design Water */
         .wave-container { position: relative; width: 170px; height: 170px; border-radius: 50%; background-color: #121214; border: 2px solid #27272a; overflow: hidden; display: flex; align-items: flex-end; box-shadow: inset 0px 4px 15px rgba(0,0,0,0.5); }
         .water-fill { width: 100%; background: linear-gradient(to bottom, #38bdf8, #1d4ed8); transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1); position: relative; pointer-events: none; }
         .water-fill::before { content: ''; position: absolute; top: -6px; left: -10%; width: 120%; height: 12px; background-color: #38bdf8; border-radius: 50%; pointer-events: none; }
 
+        /* Fire Animation Overlay */
+        #fire-overlay { pointer-events: none; transition: opacity 0.5s; }
+        .fire-particle { position: absolute; bottom: -20px; font-size: 2rem; animation: float-up 3s ease-in forwards; opacity: 0; }
+        @keyframes float-up { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80vh) scale(1.5); opacity: 0; } }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="pb-28">
+
+    <!-- FIRE ANIMATION OVERLAY -->
+    <div id="fire-overlay" class="fixed inset-0 z-50 overflow-hidden hidden"></div>
 
     <!-- NAČÍTACÍ OBRAZOVKA -->
     <div id="loading-overlay" class="fixed inset-0 bg-[#09090b] z-50 flex flex-col items-center justify-center transition-opacity duration-300 max-w-md mx-auto">
@@ -27,7 +36,6 @@
         <p class="text-xs font-semibold text-zinc-400 tracking-wider">Start Trackerrr...</p>
     </div>
 
-    <!-- BACKGROUND NEON SHADOW -->
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-md h-64 bg-gradient-to-b from-blue-600/5 via-transparent to-transparent pointer-events-none z-0"></div>
 
     <div class="max-w-md mx-auto px-4 pt-6 relative z-10">
@@ -50,15 +58,16 @@
         </div>
 
         <!-- ================= OBRAZOVKA 1: DASHBOARD ================= -->
-        <div id="view-dashboard" class="space-y-5 tab-view">
+        <div id="view-dashboard" class="space-y-4 tab-view">
             
             <!-- KLIKATELNÝ KALENDÁŘ -->
-            <div class="glass-card rounded-2xl p-4 flex flex-col items-center">
+            <div id="streak-card" class="glass-card rounded-2xl p-4 flex flex-col items-center transition-all duration-500">
                 <div class="w-full flex justify-between items-center mb-3 px-1 text-xs text-zinc-400 font-medium">
                     <span class="flex items-center gap-1"><i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> <strong class="text-white" id="streak-count">0</strong> DNÍ SÉRIE</span>
                     <span id="current-date-str" class="text-[11px] text-zinc-500 font-semibold"></span>
                 </div>
                 <div class="grid grid-cols-7 gap-1.5 w-full text-center" id="calendar-days-row">
+                    <!-- Dny -->
                     <div onclick="selectActiveDay(0)" id="wd-0" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 uppercase font-bold mb-1">Po</span><div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
                     <div onclick="selectActiveDay(1)" id="wd-1" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 uppercase font-bold mb-1">Út</span><div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
                     <div onclick="selectActiveDay(2)" id="wd-2" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 uppercase font-bold mb-1">St</span><div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
@@ -71,7 +80,7 @@
 
             <!-- VODA ANIMACE -->
             <div class="flex flex-col items-center justify-center py-2">
-                <div class="water-circle glow-active cursor-pointer" onclick="switchTab('water')">
+                <div class="wave-container glow-active cursor-pointer" onclick="switchTab('water')">
                     <div id="liquid-wave-fluid" class="water-fill" style="height: 0%;"></div>
                     <div class="absolute inset-0 flex flex-col items-center justify-center text-center z-10 pointer-events-none">
                         <span id="circle-pct-value" class="text-4xl font-black text-white tracking-tight drop-shadow-md">0%</span>
@@ -81,9 +90,17 @@
                 <p id="circle-volume-label" class="text-xs font-bold text-zinc-400 mt-3">0 z 2100 ml</p>
             </div>
 
+            <!-- GAMIFIKACE: ODZNAKY -->
+            <div class="glass-card rounded-2xl p-4">
+                <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><i data-lucide="award" class="w-3.5 h-3.5"></i> Tvoje Úspěchy</h3>
+                <div class="flex justify-between space-x-2" id="badges-container">
+                    <!-- Badges injected by JS -->
+                </div>
+            </div>
+
             <!-- KARTY PROGRESU -->
-            <div class="space-y-2.5">
-                <div onclick="switchTab('water')" class="glass-card rounded-2xl p-4 cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center active:scale-98">
+            <div class="space-y-2">
+                <div onclick="switchTab('water')" class="glass-card rounded-2xl p-3.5 cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center active:scale-98">
                     <div class="space-y-1.5 flex-1">
                         <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="glass-water" class="w-3.5 h-3.5 text-blue-400"></i> Pitný režim</h3>
                         <div class="w-40 bg-zinc-800 h-1.5 rounded-full overflow-hidden">
@@ -93,7 +110,7 @@
                     <p id="dash-text-water" class="text-sm font-black text-white">0 / 2100 ml</p>
                 </div>
 
-                <div onclick="switchTab('vitamins')" class="glass-card rounded-2xl p-4 cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center active:scale-98">
+                <div onclick="switchTab('vitamins')" class="glass-card rounded-2xl p-3.5 cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center active:scale-98">
                     <div class="space-y-1.5 flex-1">
                         <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="pill" class="w-3.5 h-3.5 text-purple-400"></i> Suplementace</h3>
                         <div class="w-40 bg-zinc-800 h-1.5 rounded-full overflow-hidden">
@@ -103,7 +120,7 @@
                     <p id="dash-text-vit" class="text-sm font-black text-white">0 splněno</p>
                 </div>
 
-                <div onclick="switchTab('food')" class="glass-card rounded-2xl p-4 cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center active:scale-98">
+                <div onclick="switchTab('food')" class="glass-card rounded-2xl p-3.5 cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center active:scale-98">
                     <div class="space-y-2 flex-1">
                         <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="utensils" class="w-3.5 h-3.5 text-amber-400"></i> Denní stravování</h3>
                         <div class="flex space-x-1.5 w-40">
@@ -190,14 +207,12 @@
             <div class="glass-card rounded-3xl p-5 space-y-4">
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider">Zaznamenat stravu</h2>
                 
-                <!-- Kategorie -->
                 <div class="grid grid-cols-3 gap-2" id="food-category-toggle-box">
                     <button onclick="triggerSelectFoodCategory('Snídaně')" id="foodcat-Snídaně" class="py-2 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Snídaně</button>
                     <button onclick="triggerSelectFoodCategory('Oběd')" id="foodcat-Oběd" class="py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/50 text-amber-400 active:scale-95 transition-transform">Oběd</button>
                     <button onclick="triggerSelectFoodCategory('Večeře')" id="foodcat-Večeře" class="py-2 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Večeře</button>
                 </div>
 
-                <!-- Šablony (jen název podniku) -->
                 <div class="grid grid-cols-4 gap-1.5 text-[10px] text-zinc-400">
                     <button onclick="injectFoodTemplate('Bageterie Boulevard', '🥖')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95 transition-transform">🥖 BB</button>
                     <button onclick="injectFoodTemplate('McDonald\'s', '🍔')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95 transition-transform">🍔 Mekáč</button>
@@ -205,14 +220,12 @@
                     <button onclick="injectFoodTemplate('Domácí', '🍳')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95 transition-transform">🍳 Domácí</button>
                 </div>
 
-                <!-- Oddělené textové pole pro detail -->
                 <div class="flex space-x-2">
                     <div class="flex items-center justify-center bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-lg" id="food-emoji-preview">🍳</div>
                     <input type="text" id="food-place-input" placeholder="Podnik (Mekáč)" class="w-1/3 bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500" value="Domácí">
-                    <input type="text" id="food-detail-input" placeholder="Co jsi tam měl? (např. BigMac Menu)" class="w-2/3 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <input type="text" id="food-detail-input" placeholder="Co jsi měl? (BigMac...)" class="w-2/3 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
 
-                <!-- HVĚZDIČKY -->
                 <div class="flex items-center justify-between bg-zinc-900/50 p-3 rounded-xl border border-zinc-800">
                     <span class="text-xs text-zinc-400 font-semibold">Chutnost:</span>
                     <div class="flex space-x-2 text-zinc-600 font-mono select-none text-2xl" id="stars-pure-html-row">
@@ -229,33 +242,24 @@
                 </button>
             </div>
 
-            <!-- DNES LOGS -->
             <div class="glass-card rounded-3xl p-5">
                 <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Záznamy chodu</h3>
                 <div id="food-today-logs-box" class="space-y-2"></div>
-            </div>
-
-            <!-- OBLÍBENÁ -->
-            <div class="glass-card rounded-3xl p-5">
-                <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2.5">⭐ Oblíbená jídla (4-5 hvězd)</h3>
-                <div id="favorite-meals-box-list" class="space-y-1.5 text-xs text-zinc-400"></div>
             </div>
         </div>
 
         <!-- ================= OBRAZOVKA 5: ANALÝZA & SYNCHRONIZACE ================= -->
         <div id="view-settings" class="space-y-5 tab-view hidden">
             
-            <!-- SYNCHRONIZACE JSONBASE -->
             <div class="glass-card rounded-3xl p-5 space-y-3.5">
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-4 h-4 text-blue-400"></i> Cloudová synchronizace</h2>
-                <p class="text-[11px] text-zinc-500 leading-relaxed">Zadej stejný kód (např. <code>jenda</code>) na PC i mobilu. Trackerrr data okamžitě spojí.</p>
+                <p class="text-[11px] text-zinc-500 leading-relaxed">Zadej stejný kód (např. <code>jenda</code>) na PC i mobilu. Trackerrr se hned spojí.</p>
                 <div class="flex gap-2">
                     <input type="text" id="cloud-sync-room-input" placeholder="Zadej synchronizační kód..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500">
                     <button onclick="saveSyncRoomCode()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-transform">Spárovat</button>
                 </div>
             </div>
 
-            <!-- GRAFY -->
             <div class="glass-card rounded-3xl p-5 space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider">Grafy spotřeby</h2>
@@ -264,14 +268,12 @@
                         <button onclick="triggerChangePeriod('month')" id="period-btn-month" class="px-2.5 py-1 rounded-md">Měsíc</button>
                     </div>
                 </div>
-
                 <div class="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 flex flex-col justify-between h-40">
                     <div class="flex items-end justify-between h-28 px-1 space-x-2" id="analytics-bars-wrapper"></div>
                     <div class="flex justify-between text-[8px] text-zinc-500 font-bold uppercase tracking-wider mt-2" id="analytics-labels-wrapper"></div>
                 </div>
             </div>
 
-            <!-- NOTIFIKACE (NOČNÍ REŽIM) -->
             <div class="glass-card rounded-3xl p-5">
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider mb-4">Systém push notifikací</h2>
                 <div class="space-y-4">
@@ -328,20 +330,19 @@
         let today = new Date().toISOString().split('T')[0];
         let activeViewDate = today;
 
-        let state = JSON.parse(localStorage.getItem('trackerrr_state_v1')) || {};
-        let config = JSON.parse(localStorage.getItem('trackerrr_config_v1')) || {
+        let state = JSON.parse(localStorage.getItem('trackerrr_state_v2')) || {};
+        let config = JSON.parse(localStorage.getItem('trackerrr_config_v2')) || {
             notifEnabled: false, notifInterval: 120, statsPeriod: 'week', syncRoom: '', customSuplementsList: [], initialized: false
         };
 
-        // Přesunutí výchozích vitamínů do upravitelného pole
         if (!config.initialized) {
             config.customSuplementsList = [
-                { id: 'ashwagandha', name: 'Ashwagandha', frequency: 1, desc: 'Před spaním / regenerace' },
-                { id: 'multivitamin', name: 'Multivitamin', frequency: 3, desc: 'S jídlem / mikroživiny' },
-                { id: 'kreatin', name: 'Kreatin', frequency: 5, desc: 'Fyzická síla / výkon' }
+                { id: 'ashwagandha', name: 'Ashwagandha', frequency: 1, desc: 'Před spaním' },
+                { id: 'multivitamin', name: 'Multivitamin', frequency: 3, desc: 'S jídlem' },
+                { id: 'kreatin', name: 'Kreatin', frequency: 5, desc: 'Fyzická síla' }
             ];
             config.initialized = true;
-            localStorage.setItem('trackerrr_config_v1', JSON.stringify(config));
+            localStorage.setItem('trackerrr_config_v2', JSON.stringify(config));
         }
 
         let currentFoodCategory = 'Oběd';
@@ -350,9 +351,30 @@
         let globalNotifTimer = null;
         let debounceTimer = null;
 
-        function hapticFeedback() {
-            if (window.navigator && window.navigator.vibrate) {
-                navigator.vibrate(40);
+        function hapticFeedback() { if (window.navigator && window.navigator.vibrate) navigator.vibrate(40); }
+
+        function triggerFireEffect() {
+            const overlay = document.getElementById('fire-overlay');
+            overlay.innerHTML = '';
+            overlay.classList.remove('hidden');
+            
+            for(let i=0; i<15; i++) {
+                let particle = document.createElement('div');
+                particle.className = 'fire-particle';
+                particle.innerText = '🔥';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                overlay.appendChild(particle);
+            }
+            setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
+        }
+
+        function checkAchievements(streak) {
+            let justHitTarget = (state[today].water >= WATER_GOAL) && (localStorage.getItem('fire_shown_today') !== today);
+            if (justHitTarget || (streak >= 7 && localStorage.getItem('fire_shown_streak') !== 'true')) {
+                triggerFireEffect();
+                localStorage.setItem('fire_shown_today', today);
+                if(streak >= 7) localStorage.setItem('fire_shown_streak', 'true');
             }
         }
 
@@ -361,7 +383,6 @@
             if (!state[dateKey].waterLogs) state[dateKey].waterLogs = [];
             if (!state[dateKey].food) state[dateKey].food = [];
             if (!state[dateKey].vitamins) state[dateKey].vitamins = {};
-            
             let correctSum = state[dateKey].waterLogs.reduce((acc, c) => acc + parseInt(c.amount || 0), 0);
             state[dateKey].water = correctSum;
         }
@@ -369,33 +390,28 @@
         initDayStructure(today);
 
         function selectActiveDay(index) {
-            hapticFeedback();
-            activeViewDate = weekKeys[index];
+            hapticFeedback(); activeViewDate = weekKeys[index];
             initDayStructure(activeViewDate);
-            const alertBox = document.getElementById('past-day-alert');
-            if(activeViewDate !== today) alertBox.classList.remove('hidden');
-            else alertBox.classList.add('hidden');
+            document.getElementById('past-day-alert').classList.toggle('hidden', activeViewDate === today);
             updateUI();
         }
 
         function jumpToToday() {
-            hapticFeedback();
-            activeViewDate = today;
+            hapticFeedback(); activeViewDate = today;
             document.getElementById('past-day-alert').classList.add('hidden');
             updateUI();
         }
 
         function commitLocalChange() {
             hapticFeedback();
-            localStorage.setItem('trackerrr_state_v1', JSON.stringify(state));
+            localStorage.setItem('trackerrr_state_v2', JSON.stringify(state));
             updateUI();
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(triggerSilentCloudUpload, 1000);
         }
 
         function handleLogWater(amount, type) {
-            let id = Date.now();
-            let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+            let id = Date.now(); let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
             state[activeViewDate].waterLogs.push({ id, amount: parseInt(amount), type, time });
             state[activeViewDate].water += parseInt(amount);
             commitLocalChange();
@@ -419,33 +435,28 @@
         }
 
         function handleRemoveCustomSuplement(id) {
-            if(confirm("Opravdu smazat tento suplement?")) {
+            if(confirm("Opravdu smazat suplement?")) {
                 config.customSuplementsList = config.customSuplementsList.filter(s => s.id !== id);
-                localStorage.setItem('trackerrr_config_v1', JSON.stringify(config));
+                localStorage.setItem('trackerrr_config_v2', JSON.stringify(config));
                 commitLocalChange();
             }
         }
 
         function submitCustomVitaminSystem() {
-            const input = document.getElementById('custom-vit-name-input');
-            let name = input.value.trim();
+            let name = document.getElementById('custom-vit-name-input').value.trim();
             let freq = parseInt(document.getElementById('custom-vit-freq-select').value);
             if(!name) return;
             let id = 'c_' + Date.now();
             config.customSuplementsList.push({ id, name, frequency: freq });
-            localStorage.setItem('trackerrr_config_v1', JSON.stringify(config));
-            input.value = '';
-            initDayStructure(activeViewDate);
-            state[activeViewDate].vitamins[id] = [];
+            localStorage.setItem('trackerrr_config_v2', JSON.stringify(config));
+            document.getElementById('custom-vit-name-input').value = '';
+            initDayStructure(activeViewDate); state[activeViewDate].vitamins[id] = [];
             commitLocalChange();
         }
 
         function triggerSelectFoodCategory(cat) {
-            hapticFeedback();
-            currentFoodCategory = cat;
-            document.querySelectorAll('#food-category-toggle-box button').forEach(b => {
-                b.className = "py-2 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform";
-            });
+            hapticFeedback(); currentFoodCategory = cat;
+            document.querySelectorAll('#food-category-toggle-box button').forEach(b => b.className = "py-2 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform");
             document.getElementById('foodcat-' + cat).className = "py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/50 text-amber-400 active:scale-95 transition-transform";
         }
 
@@ -458,55 +469,55 @@
         }
 
         function triggerStarSelect(stars) {
-            hapticFeedback();
-            currentStarsRating = stars;
+            hapticFeedback(); currentStarsRating = stars;
             const starSpans = document.querySelectorAll('.html-star');
-            starSpans.forEach((s, idx) => {
-                if(idx < stars) s.className = "html-star cursor-pointer text-amber-400 transition-colors";
-                else s.className = "html-star cursor-pointer text-zinc-700 transition-colors";
-            });
+            starSpans.forEach((s, idx) => { s.className = idx < stars ? "html-star cursor-pointer text-amber-400 transition-colors" : "html-star cursor-pointer text-zinc-700 transition-colors"; });
         }
 
         function handleLogFoodSubmit() {
             let place = document.getElementById('food-place-input').value.trim();
             let detail = document.getElementById('food-detail-input').value.trim();
             if(!place && !detail) return;
-            
-            let finalName = place;
-            if(detail) finalName = place ? `${place} | ${detail}` : detail;
-
-            let id = Date.now();
-            let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+            let finalName = detail ? (place ? `${place} | ${detail}` : detail) : place;
+            let id = Date.now(); let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
             state[activeViewDate].food.push({ id, category: currentFoodCategory, name: finalName, emoji: currentFoodEmoji, stars: currentStarsRating, time });
-            
-            document.getElementById('food-detail-input').value = '';
-            triggerStarSelect(5);
+            document.getElementById('food-detail-input').value = ''; triggerStarSelect(5);
             commitLocalChange();
         }
 
-        function handleRemoveFoodItem(id) {
-            state[activeViewDate].food = state[activeViewDate].food.filter(f => f.id !== id);
-            commitLocalChange();
-        }
+        function handleRemoveFoodItem(id) { state[activeViewDate].food = state[activeViewDate].food.filter(f => f.id !== id); commitLocalChange(); }
 
         function switchTab(tabId) {
             hapticFeedback();
             document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
             document.querySelectorAll('[id^="nav-"]').forEach(btn => btn.className = "flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-transform active:scale-95");
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            document.getElementById('nav-' + tabId).className = "flex flex-col items-center text-blue-400 transition-transform active:scale-95";
             
-            const activeView = document.getElementById('view-' + tabId);
-            const currentBtn = document.getElementById('nav-' + tabId);
-            if(activeView) activeView.classList.remove('hidden');
-            if(currentBtn) currentBtn.className = "flex flex-col items-center text-blue-400 transition-transform active:scale-95";
+            const titles = { 'dashboard': 'Přehled', 'water': 'Hydratace', 'vitamins': 'Suplementace', 'food': 'Stravování', 'settings': 'Analýza' };
+            document.getElementById('page-title').innerText = titles[tabId];
+            window.scrollTo({ top: 0, behavior: 'smooth' }); updateUI();
+        }
+
+        function renderBadges(streak) {
+            let bContainer = document.getElementById('badges-container');
+            let hasFirstDrink = false;
+            for(let key in state) { if(state[key].waterLogs && state[key].waterLogs.length > 0) { hasFirstDrink = true; break; } }
             
-            if (tabId === 'dashboard') document.getElementById('page-title').innerText = "Přehled";
-            else if (tabId === 'water') document.getElementById('page-title').innerText = "Hydratace";
-            else if (tabId === 'vitamins') document.getElementById('page-title').innerText = "Suplementace";
-            else if (tabId === 'food') document.getElementById('page-title').innerText = "Stravování";
-            else if (tabId === 'settings') document.getElementById('page-title').innerText = "Analýza";
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            updateUI();
+            let badges = [
+                { title: 'První lok', icon: 'droplet', done: hasFirstDrink, color: 'text-blue-400' },
+                { title: 'Konzistence', icon: 'zap', done: streak >= 3, color: 'text-amber-400' },
+                { title: 'Pán Vody', icon: 'flame', done: streak >= 7, color: 'text-orange-500' }
+            ];
+
+            bContainer.innerHTML = badges.map(b => `
+                <div class="flex-1 flex flex-col items-center bg-zinc-900/50 p-2.5 rounded-xl border ${b.done ? 'border-zinc-700' : 'border-zinc-800/50'}">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center mb-1.5 ${b.done ? 'bg-zinc-800 shadow-md' : 'bg-zinc-950 opacity-40'}">
+                        <i data-lucide="${b.icon}" class="w-4 h-4 ${b.done ? b.color : 'text-zinc-600'}"></i>
+                    </div>
+                    <span class="text-[8px] font-bold uppercase tracking-wide ${b.done ? 'text-zinc-200' : 'text-zinc-600'}">${b.title}</span>
+                </div>
+            `).join('');
         }
 
         function updateUI() {
@@ -534,14 +545,14 @@
                     document.getElementById('dash-text-vit').innerText = `${totalVitsDone} / ${totalVitsTarget} ks`;
                 }
 
-                let hasBreakfast = data.food.some(f => f.category === 'Snídaně');
-                let hasLunch = data.food.some(f => f.category === 'Oběd');
-                let hasDinner = data.food.some(f => f.category === 'Večeře');
+                let hasB = data.food.some(f => f.category === 'Snídaně');
+                let hasL = data.food.some(f => f.category === 'Oběd');
+                let hasD = data.food.some(f => f.category === 'Večeře');
                 if(document.getElementById('dash-food-s1')) {
-                    document.getElementById('dash-food-s1').className = hasBreakfast ? "h-1.5 flex-1 bg-amber-500 rounded-sm transition-colors" : "h-1.5 flex-1 bg-zinc-800 rounded-sm transition-colors";
-                    document.getElementById('dash-food-s2').className = hasLunch ? "h-1.5 flex-1 bg-amber-500 rounded-sm transition-colors" : "h-1.5 flex-1 bg-zinc-800 rounded-sm transition-colors";
-                    document.getElementById('dash-food-s3').className = hasDinner ? "h-1.5 flex-1 bg-amber-500 rounded-sm transition-colors" : "h-1.5 flex-1 bg-zinc-800 rounded-sm transition-colors";
-                    document.getElementById('dash-text-food').innerText = `${[hasBreakfast, hasLunch, hasDinner].filter(Boolean).length} / 3 chody`;
+                    document.getElementById('dash-food-s1').className = hasB ? "h-1.5 flex-1 bg-amber-500 rounded-sm" : "h-1.5 flex-1 bg-zinc-800 rounded-sm";
+                    document.getElementById('dash-food-s2').className = hasL ? "h-1.5 flex-1 bg-amber-500 rounded-sm" : "h-1.5 flex-1 bg-zinc-800 rounded-sm";
+                    document.getElementById('dash-food-s3').className = hasD ? "h-1.5 flex-1 bg-amber-500 rounded-sm" : "h-1.5 flex-1 bg-zinc-800 rounded-sm";
+                    document.getElementById('dash-text-food').innerText = `${[hasB, hasL, hasD].filter(Boolean).length} / 3 chody`;
                 }
 
                 document.getElementById('water-detail-current-label').innerText = data.water;
@@ -555,188 +566,124 @@
                     `).join('');
                 } else { waterLogsBox.innerHTML = `<p class="text-center py-5 text-zinc-600 text-xs">Bez logů vody.</p>`; }
 
-                renderVitaminsList(data);
+                let container = document.getElementById('vitamins-dynamic-list');
+                if(container) {
+                    container.innerHTML = config.customSuplementsList.map(v => {
+                        let count = (data.vitamins[v.id] || []).length; let circlesHtml = '';
+                        for(let i=0; i < v.frequency; i++) {
+                            let active = count > i;
+                            circlesHtml += `<button onclick="handleToggleVitaminCell('${v.id}', ${i})" class="w-6 h-6 rounded-md font-bold text-[10px] border transition-all active:scale-90 ${active ? 'bg-purple-600 border-purple-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-600'}">${i + 1}</button>`;
+                        }
+                        return `
+                            <div class="flex items-center justify-between p-3.5 bg-zinc-900/40 border border-zinc-800 rounded-2xl">
+                                <div><div class="flex items-baseline"><p class="font-bold text-xs text-zinc-200">${v.name}</p><button onclick="handleRemoveCustomSuplement('${v.id}')" class="text-[10px] font-bold text-zinc-600 hover:text-red-400 ml-2 border border-zinc-800 px-1.5 py-0.5 rounded transition-colors">✕</button></div><p class="text-[9px] text-zinc-500 mt-0.5">${v.desc || 'Vlastní suplement'}</p></div>
+                                <div class="flex space-x-1">${circlesHtml}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
 
                 let foodLogBox = document.getElementById('food-today-logs-box');
-                if(data.food.length > 0) {
-                    foodLogBox.innerHTML = data.food.map(f => `
-                        <div class="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs">
-                            <div>
-                                <span class="bg-zinc-800 text-zinc-500 font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wide mr-1">${f.category}</span>
-                                <span class="text-zinc-100 font-medium">${f.emoji} ${f.name}</span>
-                                <div class="text-amber-400 font-mono text-[10px] mt-0.5">${'★'.repeat(f.stars)}</div>
+                if(foodLogBox) {
+                    if(data.food.length > 0) {
+                        foodLogBox.innerHTML = data.food.map(f => `
+                            <div class="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs">
+                                <div><span class="bg-zinc-800 text-zinc-500 font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wide mr-1">${f.category}</span><span class="text-zinc-100 font-medium">${f.emoji} ${f.name}</span><div class="text-amber-400 font-mono text-[10px] mt-0.5">${'★'.repeat(f.stars)}</div></div>
+                                <button onclick="handleRemoveFoodItem(${f.id})" class="text-zinc-500 hover:text-red-400 font-bold px-1.5 py-1">✕</button>
                             </div>
-                            <button onclick="handleRemoveFoodItem(${f.id})" class="text-zinc-500 hover:text-red-400 font-bold px-1.5 py-1">✕</button>
-                        </div>
-                    `).join('');
-                } else { foodLogBox.innerHTML = `<p class="text-center py-4 text-zinc-600 text-xs">Bez záznamu jídla.</p>`; }
+                        `).join('');
+                    } else { foodLogBox.innerHTML = `<p class="text-center py-4 text-zinc-600 text-xs">Bez záznamu jídla.</p>`; }
+                }
 
-                renderFavoriteMealsBox();
-                renderAnalyticsChartsWrapper();
-                updateCalendarWidgetDays();
-                updateNotifSettingsUI();
+                let streak = weekKeys.filter(k => state[k] && state[k].water >= WATER_GOAL).length;
+                if(document.getElementById('streak-count')) {
+                    document.getElementById('streak-count').innerText = streak;
+                    let streakCard = document.getElementById('streak-card');
+                    if(streak >= 7) streakCard.classList.add('glow-fire');
+                    else streakCard.classList.remove('glow-fire');
+                }
+
+                checkAchievements(streak);
+                renderBadges(streak);
+
+                let box = document.getElementById('favorite-meals-box-list');
+                if(box) {
+                    let favs = []; for (let day in state) { if (state[day].food) state[day].food.forEach(f => { if (f.stars >= 4) favs.push(f); }); }
+                    let uniq = []; let seen = new Set();
+                    favs.forEach(item => { let clean = item.name.replace(/.*:\s*/, '').trim().toLowerCase(); if(!seen.has(clean)) { seen.add(clean); uniq.push(item); } });
+                    if(uniq.length > 0) { box.innerHTML = uniq.slice(0, 4).map(f => `<div class="bg-zinc-900/40 border border-zinc-800 p-2 rounded-xl flex justify-between px-3"><span>${f.emoji} ${f.name}</span><span class="text-amber-400 font-bold font-mono">★ ${f.stars}</span></div>`).join(''); }
+                    else { box.innerHTML = `<p class="text-center text-zinc-600 text-[10px] py-1">Bez oblíbených jídel.</p>`; }
+                }
+
+                const bCont = document.getElementById('analytics-bars-wrapper');
+                if(bCont) {
+                    let bHtml = ''; let lHtml = '';
+                    if (config.statsPeriod === 'week') {
+                        weekKeys.forEach(key => {
+                            let dayData = state[key] || { water: 0 };
+                            let barPct = Math.min(Math.round((dayData.water / WATER_GOAL) * 100), 100);
+                            let dObj = new Date(key); let label = dObj.toLocaleDateString('cs-CZ', { weekday: 'short' }).slice(0, 2);
+                            bHtml += `<div class="flex-1 flex flex-col justify-end h-full"><div class="w-full bg-blue-500 rounded-t-sm" style="height: ${barPct}%"></div></div>`;
+                            lHtml += `<span class="flex-1 text-center">${label}</span>`;
+                        });
+                    } else {
+                        for (let w = 3; w >= 0; w--) {
+                            let sum = 0;
+                            for (let d = 0; d < 7; d++) {
+                                let date = new Date(); date.setDate(date.getDate() - (w * 7 + d));
+                                let k = date.toISOString().split('T')[0];
+                                if (state[k]) sum += state[k].water;
+                            }
+                            let avg = Math.round(sum / 7);
+                            let barPct = Math.min(Math.round((avg / WATER_GOAL) * 100), 100);
+                            bHtml += `<div class="flex-1 flex flex-col justify-end h-full px-2"><div class="w-full bg-purple-500 rounded-t-sm" style="height: ${barPct}%"></div></div>`;
+                            lHtml += `<span class="flex-1 text-center">T-${w}</span>`;
+                        }
+                    }
+                    bCont.innerHTML = bHtml; document.getElementById('analytics-labels-wrapper').innerHTML = lHtml;
+                }
+
+                weekKeys.forEach((key, i) => {
+                    let dayData = state[key]; let dayWater = dayData ? dayData.water : 0; let dayPct = Math.min((dayWater / WATER_GOAL), 1);
+                    let wrapper = document.getElementById(`wd-${i}`);
+                    if(wrapper) {
+                        let circle = wrapper.querySelector('div');
+                        if(key === activeViewDate) {
+                            circle.className = "w-7 h-7 rounded-full bg-blue-500/10 border-2 border-blue-400 flex items-center justify-center text-[9px] text-white font-black shadow-[0_0_8px_rgba(56,189,248,0.3)] transition-all";
+                            circle.innerText = Math.round(dayPct*100) + '%';
+                        } else {
+                            if (dayPct >= 1) {
+                                circle.className = "w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/60 flex items-center justify-center text-xs text-emerald-400 font-bold transition-all";
+                                circle.innerText = '✓';
+                            } else if (dayWater > 0) {
+                                circle.className = "w-7 h-7 rounded-full bg-zinc-800 border border-blue-500/30 flex items-center justify-center text-[9px] text-blue-400 transition-all";
+                                circle.innerText = Math.round(dayPct*100) + '%';
+                            } else {
+                                circle.className = "w-7 h-7 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-600 text-xs transition-all";
+                                circle.innerText = '•';
+                            }
+                        }
+                    }
+                });
+
+                const btn = document.getElementById('btn-toggle-notifs'); const box = document.getElementById('notif-interval-wrapper');
+                document.querySelectorAll('[id^="int-btn-"]').forEach(b => b.className = "bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg text-zinc-500 active:scale-95 transition-transform");
+                if (config.notifEnabled) {
+                    if(btn) { btn.innerText = "Aktivní"; btn.className = "px-3 py-1 bg-emerald-500/20 text-emerald-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform"; }
+                    if(box) box.classList.remove('opacity-40', 'pointer-events-none');
+                    let act = document.getElementById('int-btn-' + config.notifInterval);
+                    if(act) act.className = "bg-blue-500/20 border border-blue-500/50 py-1.5 rounded-lg text-blue-400 active:scale-95 transition-transform";
+                } else {
+                    if(btn) { btn.innerText = "Vypnuto"; btn.className = "px-3 py-1 bg-zinc-800 text-zinc-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform"; }
+                    if(box) box.classList.add('opacity-40', 'pointer-events-none');
+                }
+                if(document.getElementById('cloud-sync-room-input')) document.getElementById('cloud-sync-room-input').value = config.syncRoom || '';
                 
                 try { lucide.createIcons(); } catch(e){}
             } catch(fatalError) { console.error(fatalError); }
         }
 
-        function renderVitaminsList(data) {
-            let container = document.getElementById('vitamins-dynamic-list');
-            if(!container) return;
-            
-            container.innerHTML = config.customSuplementsList.map(v => {
-                let count = (data.vitamins[v.id] || []).length;
-                let circlesHtml = '';
-                for(let i=0; i < v.frequency; i++) {
-                    let active = count > i;
-                    circlesHtml += `
-                        <button onclick="handleToggleVitaminCell('${v.id}', ${i})" class="w-6 h-6 rounded-md font-bold text-[10px] border transition-all active:scale-90 ${active ? 'bg-purple-600 border-purple-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-600'}">
-                            ${i + 1}
-                        </button>
-                    `;
-                }
-                return `
-                    <div class="flex items-center justify-between p-3.5 bg-zinc-900/40 border border-zinc-800 rounded-2xl">
-                        <div>
-                            <div class="flex items-baseline">
-                                <p class="font-bold text-xs text-zinc-200">${v.name}</p>
-                                <button onclick="handleRemoveCustomSuplement('${v.id}')" class="text-[10px] font-bold text-zinc-600 hover:text-red-400 ml-2 border border-zinc-800 px-1.5 py-0.5 rounded transition-colors">✕</button>
-                            </div>
-                            <p class="text-[9px] text-zinc-500 mt-0.5">${v.desc || 'Vlastní suplement'}</p>
-                        </div>
-                        <div class="flex space-x-1">${circlesHtml}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderFavoriteMealsBox() {
-            let box = document.getElementById('favorite-meals-box-list');
-            if(!box) return;
-            let favs = [];
-            for (let day in state) { if (state[day].food) state[day].food.forEach(f => { if (f.stars >= 4) favs.push(f); }); }
-            let uniq = []; let seen = new Set();
-            favs.forEach(item => {
-                let clean = item.name.replace(/.*:\s*/, '').trim().toLowerCase();
-                if(!seen.has(clean)) { seen.add(clean); uniq.push(item); }
-            });
-            if(uniq.length > 0) {
-                box.innerHTML = uniq.slice(0, 4).map(f => `<div class="bg-zinc-900/40 border border-zinc-800 p-2 rounded-xl flex justify-between px-3"><span>${f.emoji} ${f.name}</span><span class="text-amber-400 font-bold font-mono">★ ${f.stars}</span></div>`).join('');
-            } else { box.innerHTML = `<p class="text-center text-zinc-600 text-[10px] py-1">Zatím bez oblíbených jídel.</p>`; }
-        }
-
-        function renderAnalyticsChartsWrapper() {
-            const bCont = document.getElementById('analytics-bars-wrapper');
-            const lCont = document.getElementById('analytics-labels-wrapper');
-            if(!bCont) return;
-            let bHtml = ''; let lHtml = '';
-
-            if (config.statsPeriod === 'week') {
-                weekKeys.forEach(key => {
-                    let dayData = state[key] || { water: 0 };
-                    let barPct = Math.min(Math.round((dayData.water / WATER_GOAL) * 100), 100);
-                    let dObj = new Date(key);
-                    let label = dObj.toLocaleDateString('cs-CZ', { weekday: 'short' }).slice(0, 2);
-                    bHtml += `<div class="flex-1 flex flex-col justify-end h-full"><div class="w-full bg-blue-500 rounded-t-sm" style="height: ${barPct}%"></div></div>`;
-                    lHtml += `<span class="flex-1 text-center">${label}</span>`;
-                });
-            } else {
-                for (let w = 3; w >= 0; w--) {
-                    let sum = 0;
-                    for (let d = 0; d < 7; d++) {
-                        let date = new Date(); date.setDate(date.getDate() - (w * 7 + d));
-                        let k = date.toISOString().split('T')[0];
-                        if (state[k]) sum += state[k].water;
-                    }
-                    let avg = Math.round(sum / 7);
-                    let barPct = Math.min(Math.round((avg / WATER_GOAL) * 100), 100);
-                    bHtml += `<div class="flex-1 flex flex-col justify-end h-full px-2"><div class="w-full bg-purple-500 rounded-t-sm" style="height: ${barPct}%"></div></div>`;
-                    lHtml += `<span class="flex-1 text-center">T-${w}</span>`;
-                }
-            }
-            bCont.innerHTML = bHtml; lCont.innerHTML = lHtml;
-        }
-
         function triggerChangePeriod(p) { hapticFeedback(); config.statsPeriod = p; localStorage.setItem('trackerrr_config_v1', JSON.stringify(config)); updateUI(); }
-
-        function updateCalendarWidgetDays() {
-            weekKeys.forEach((key, i) => {
-                let dayData = state[key];
-                let dayWater = dayData ? dayData.water : 0;
-                let dayPct = Math.min((dayWater / WATER_GOAL), 1);
-                
-                let wrapper = document.getElementById(`wd-${i}`);
-                if(wrapper) {
-                    let circle = wrapper.querySelector('div');
-                    if(key === activeViewDate) {
-                        circle.className = "w-7 h-7 rounded-full bg-blue-500/10 border-2 border-blue-400 flex items-center justify-center text-[9px] text-white font-black shadow-[0_0_8px_rgba(56,189,248,0.3)] transition-all";
-                        circle.innerText = Math.round(dayPct*100) + '%';
-                    } else {
-                        if (dayPct >= 1) {
-                            circle.className = "w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/60 flex items-center justify-center text-xs text-emerald-400 font-bold transition-all";
-                            circle.innerText = '✓';
-                        } else if (dayWater > 0) {
-                            circle.className = "w-7 h-7 rounded-full bg-zinc-800 border border-blue-500/30 flex items-center justify-center text-[9px] text-blue-400 transition-all";
-                            circle.innerText = Math.round(dayPct*100) + '%';
-                        } else {
-                            circle.className = "w-7 h-7 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-600 text-xs transition-all";
-                            circle.innerText = '•';
-                        }
-                    }
-                }
-            });
-            let streak = weekKeys.filter(k => state[k] && state[k].water >= WATER_GOAL).length;
-            if(document.getElementById('streak-count')) {
-                document.getElementById('streak-count').innerText = streak;
-            }
-        }
-
-        function updateNotifSettingsUI() {
-            const btn = document.getElementById('btn-toggle-notifs');
-            const box = document.getElementById('notif-interval-wrapper');
-            document.querySelectorAll('[id^="int-btn-"]').forEach(b => b.className = "bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg text-zinc-500 active:scale-95 transition-transform");
-            
-            if (config.notifEnabled) {
-                if(btn) { btn.innerText = "Aktivní"; btn.className = "px-3 py-1 bg-emerald-500/20 text-emerald-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform"; }
-                if(box) box.classList.remove('opacity-40', 'pointer-events-none');
-                let act = document.getElementById('int-btn-' + config.notifInterval);
-                if(act) act.className = "bg-blue-500/20 border border-blue-500/50 py-1.5 rounded-lg text-blue-400 active:scale-95 transition-transform";
-            } else {
-                if(btn) { btn.innerText = "Vypnuto"; btn.className = "px-3 py-1 bg-zinc-800 text-zinc-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform"; }
-                if(box) box.classList.add('opacity-40', 'pointer-events-none');
-            }
-            if(document.getElementById('cloud-sync-room-input')) {
-                document.getElementById('cloud-sync-room-input').value = config.syncRoom || '';
-            }
-        }
-
-        function handleToggleNotifSystem() {
-            hapticFeedback();
-            if (!config.notifEnabled) {
-                Notification.requestPermission().then(p => { if (p === "granted") { config.notifEnabled = true; saveConfigToDisk(); startNotificationEngine(); updateUI(); } });
-            } else { config.notifEnabled = false; saveConfigToDisk(); stopNotificationEngine(); updateUI(); }
-        }
-        function handleChangeNotifTime(m) { hapticFeedback(); config.notifInterval = m; saveConfigToDisk(); startNotificationEngine(); updateUI(); }
-        function saveConfigToDisk() { localStorage.setItem('trackerrr_config_v1', JSON.stringify(config)); }
-        function startNotificationEngine() { 
-            stopNotificationEngine(); 
-            if (!config.notifEnabled) return; 
-            globalNotifTimer = setInterval(() => { 
-                let currentHour = new Date().getHours();
-                if (currentHour >= 22 || currentHour < 7) return; // NOČNÍ KLID (22:00 - 07:00)
-                if(state[today] && state[today].water < WATER_GOAL) new Notification("Čas na vodu! 🥤", { body: "Napij se, ať držíš optimální pitný režim." }); 
-            }, config.notifInterval * 60 * 1000); 
-        }
-        function stopNotificationEngine() { if(globalNotifTimer) { clearInterval(globalNotifTimer); globalNotifTimer = null; } }
-
-        function saveSyncRoomCode() {
-            hapticFeedback();
-            let code = document.getElementById('cloud-sync-room-input').value.trim().toLowerCase().replace(/[^a-z0-8_-]/g, '');
-            if(!code) return;
-            config.syncRoom = code;
-            saveConfigToDisk();
-            loadAndMergeDataFromCloudSystem();
-        }
 
         function mergeCloudAndLocal(local, remote) {
             let allKeys = new Set([...Object.keys(local), ...Object.keys(remote)]);
@@ -778,8 +725,7 @@
             if (!config.syncRoom) {
                 document.getElementById('loading-overlay').style.display = 'none';
                 setSyncLabelStatus("Lokální režim", "bg-zinc-900 text-zinc-400 border-zinc-800", "cloud");
-                updateUI();
-                return;
+                updateUI(); return;
             }
             setSyncLabelStatus("Spojuji...", "bg-zinc-900 text-amber-400 border-zinc-800", "refresh-cw", true);
             let targetUrl = `${CLOUD_API_URL}${config.syncRoom}`;
@@ -818,6 +764,15 @@
             finally { updateUI(); }
         }
 
+        function saveSyncRoomCode() {
+            hapticFeedback();
+            let code = document.getElementById('cloud-sync-room-input').value.trim().toLowerCase().replace(/[^a-z0-8_-]/g, '');
+            if(!code) return;
+            config.syncRoom = code;
+            localStorage.setItem('trackerrr_config_v1', JSON.stringify(config));
+            loadAndMergeDataFromCloudSystem();
+        }
+
         function triggerManualSync() { hapticFeedback(); loadAndMergeDataFromCloudSystem(); }
         function setSyncLabelStatus(text, classes, iconName, spin = false) {
             const ind = document.getElementById('sync-indicator');
@@ -839,7 +794,13 @@
 
         triggerSelectFoodCategory('Oběd');
         loadAndMergeDataFromCloudSystem();
-        startNotificationEngine();
+        if(config.notifEnabled) {
+            globalNotifTimer = setInterval(() => { 
+                let currentHour = new Date().getHours();
+                if (currentHour >= 22 || currentHour < 7) return;
+                if(state[today] && state[today].water < WATER_GOAL) new Notification("Čas na vodu! 🥤", { body: "Napij se, ať držíš optimální pitný režim." }); 
+            }, config.notifInterval * 60 * 1000); 
+        }
     </script>
 </body>
 </html>
