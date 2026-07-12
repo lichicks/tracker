@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Bio-Tracker</title>
-    <!-- Tailwind CSS pro moderní design -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Lucide Ikony -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -21,15 +21,28 @@
             <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Ahoj, vítej zpět</p>
             <h1 class="text-2xl font-bold text-slate-900">Můj denní přehled</h1>
         </div>
-        <button onclick="requestNotificationPermission()" class="p-3 bg-white rounded-full shadow-xs hover:bg-slate-100 relative">
-            <i data-lucide="bell" class="w-5 h-5 text-slate-600"></i>
-            <span id="notif-status" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full hidden"></span>
-        </button>
+        <div class="flex items-center space-x-2">
+            <!-- Cloud stav synchronizace -->
+            <div id="sync-indicator" class="text-xs bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full flex items-center space-x-1 font-medium border border-emerald-100">
+                <i data-lucide="cloud-check" class="w-3.5 h-3.5"></i>
+                <span id="sync-text">Disk OK</span>
+            </div>
+            <button onclick="requestNotificationPermission()" class="p-3 bg-white rounded-full shadow-xs hover:bg-slate-100 relative border border-slate-100">
+                <i data-lucide="bell" class="w-5 h-5 text-slate-600"></i>
+                <span id="notif-status" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-overlay" class="fixed inset-0 bg-[#fcf9f2] z-50 flex flex-col items-center justify-center transition-opacity duration-300 max-w-md mx-auto">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
+        <p class="text-sm font-medium text-slate-500">Načítám data z Google Disku...</p>
     </div>
 
     <div class="max-w-md mx-auto px-4 space-y-6">
         
-        <!-- VODA KARTA (Inspirováno Waterllama/Waterminder) -->
+        <!-- VODA KARTA -->
         <div class="glass border border-white/40 rounded-3xl p-6 shadow-sm bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
             <div class="flex justify-between items-start mb-4">
                 <div>
@@ -39,12 +52,10 @@
                 <div class="bg-blue-500 text-white font-bold px-3 py-1 rounded-full text-sm" id="water-percentage">0%</div>
             </div>
             
-            <!-- Vizuální plnění vody -->
             <div class="w-full bg-slate-200/60 rounded-full h-4 mb-6 overflow-hidden">
                 <div id="water-bar" class="bg-gradient-to-r from-blue-400 to-indigo-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
 
-            <!-- Tlačítka pro rychlé přidání -->
             <div class="grid grid-cols-3 gap-3">
                 <button onclick="addWater(900)" class="bg-white hover:bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center justify-center transition-transform active:scale-95 shadow-xs">
                     <i data-lucide="cup-loader" class="w-6 h-6 text-blue-500 mb-1"></i>
@@ -95,7 +106,6 @@
         <!-- JÍDLO KARTA -->
         <div class="glass border border-white/40 rounded-3xl p-6 shadow-sm">
             <h2 class="font-bold text-lg text-slate-900 mb-2">Dnešní jídlo</h2>
-            <p class="text-xs text-slate-400 mb-4">Zaznamenej si, co jsi měl dnes k obědu/večeři</p>
             <div class="grid grid-cols-2 gap-2">
                 <button onclick="logFood('Bageterie Boulevard', '🥖')" class="bg-white hover:bg-slate-50 border border-slate-100 p-3 rounded-xl text-left flex items-center space-x-2 transition-transform active:scale-98">
                     <span class="text-xl">🥖</span>
@@ -115,82 +125,128 @@
                 </button>
             </div>
             
-            <!-- Log historie jídla -->
-            <div id="food-log" class="mt-4 space-y-1.5 max-h-32 overflow-y-auto pt-2 border-t border-slate-100 hidden">
-                <!-- Sem se vkládá jídlo -->
-            </div>
+            <div id="food-log" class="mt-4 space-y-1.5 max-h-32 overflow-y-auto pt-2 border-t border-slate-100 hidden"></div>
         </div>
 
-        <!-- PROGRES SEKCE (HISTORIE) -->
+        <!-- PROGRES SEKCE -->
         <div class="glass border border-white/40 rounded-3xl p-6 shadow-sm">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-lg text-slate-900">Historie & Progres</h2>
-                <button onclick="clearAllData()" class="text-xs text-red-400 hover:text-red-500 font-medium">Resetovat data</button>
+                <h2 class="font-bold text-lg text-slate-900">Historie & Progres (Disk)</h2>
             </div>
             <div id="history-list" class="space-y-2 text-sm text-slate-500">
-                <!-- Sem se ukládají předchozí dny -->
-                <p class="text-center py-4 text-xs">Zatím tu nemáš žádný dlouhodobý progres. Data se začnou ukládat od zítra.</p>
+                <p class="text-center py-2 text-xs">Načítám historii z Google tabulky...</p>
             </div>
         </div>
 
     </div>
 
-    <!-- SPODNÍ NAVIGAČNÍ PANEL (ČISTĚ DEKORATIVNÍ / PRO ROZŠÍŘENÍ) -->
     <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-md border-t border-slate-100 px-6 py-3 flex justify-around items-center shadow-lg rounded-t-3xl z-50">
         <button class="flex flex-col items-center text-blue-500"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-0.5">Domů</span></button>
-        <button onclick="alert('Grafy se otevřou za týden, až appka nasbírá data!')" class="flex flex-col items-center text-slate-400 hover:text-slate-600"><i data-lucide="bar-chart-3" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-0.5">Progres</span></button>
+        <button onclick="alert('Historie se stahuje přímo z tvého Google Disku!')" class="flex flex-col items-center text-slate-400 hover:text-slate-600"><i data-lucide="bar-chart-3" class="w-5 h-5"></i><span class="text-[10px] font-bold mt-0.5">Progres</span></button>
     </div>
 
     <script>
-        // NASTAVENÍ CÍLŮ
+        // --- TADY VLOŽ SVŮJ LINK Z KROKU 3 ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqRrJO7skZKFusk_YjWmwHSaSs2Nf_MO0dBqZBr4_Qpqt26HnZIiWBk4xVdsfLYKmu/exec";
+        
         const WATER_GOAL = 3000;
-        
-        // LOGIKA PRO UKLÁDÁNÍ DO LOCALSTORAGE
         let today = new Date().toISOString().split('T')[0];
-        let state = JSON.parse(localStorage.getItem('app_tracker_state')) || {};
         
+        // Načtení lokálního stavu pro okamžitý start appky
+        let state = JSON.parse(localStorage.getItem('app_tracker_state')) || {};
         if (!state[today]) {
             state[today] = { water: 0, vitamins: { ashwagandha: false, multivitamin: false, kreatin: false }, food: [] };
         }
 
-        // FUNKCE PRO VODU
+        // 1. NAČTENÍ DAT Z GOOGLE DISKU PŘI ZAPNUTÍ
+        async function loadDataFromGoogle() {
+            if (GOOGLE_SCRIPT_URL.includes("SEM_VLOZ")) {
+                document.getElementById('loading-overlay').style.display = 'none';
+                return;
+            }
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const cloudData = await response.json();
+                
+                if (Object.keys(cloudData).length > 0) {
+                    state = cloudData;
+                    if (!state[today]) {
+                        state[today] = { water: 0, vitamins: { ashwagandha: false, multivitamin: false, kreatin: false }, food: [] };
+                    }
+                    localStorage.setItem('app_tracker_state', JSON.stringify(state));
+                }
+            } catch (error) {
+                console.error("Chyba při stahování z cloudu:", error);
+                setSyncStatus("Chyba cloudu", "bg-red-50 text-red-600 border-red-100", "cloud-off");
+            } finally {
+                // Skrýt loading screen
+                document.getElementById('loading-overlay').classList.add('opacity-0');
+                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 300);
+                updateUI();
+            }
+        }
+
+        // 2. ODESLÁNÍ DAT NA GOOGLE DISK
+        async function syncWithGoogle() {
+            if (GOOGLE_SCRIPT_URL.includes("SEM_VLOZ")) return;
+            
+            setSyncStatus("Ukládám...", "bg-amber-50 text-amber-600 border-amber-100", "refresh-cw", true);
+            
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Rychlé odeslání bez zdržování prohlížeče
+                    body: JSON.stringify({
+                        date: today,
+                        data: state[today]
+                    })
+                });
+                setTimeout(() => {
+                    setSyncStatus("Disk OK", "bg-emerald-50 text-emerald-600 border-emerald-100", "cloud-check");
+                }, 800);
+            } catch (error) {
+                setSyncStatus("Chyba sync", "bg-red-50 text-red-600 border-red-100", "cloud-off");
+            }
+        }
+
+        function setSyncStatus(text, classes, iconName, spin = false) {
+            const ind = document.getElementById('sync-indicator');
+            ind.className = `text-xs px-2.5 py-1 rounded-full flex items-center space-x-1 font-medium border ${classes}`;
+            ind.innerHTML = `<i data-lucide="${iconName}" class="w-3.5 h-3.5 ${spin ? 'animate-spin' : ''}"></i><span>${text}</span>`;
+            lucide.createIcons();
+        }
+
         function addWater(amount) {
             state[today].water += amount;
-            saveState();
-            updateUI();
+            saveAndSync();
         }
 
-        // FUNKCE PRO VITAMÍNY
         function toggleVitamin(vitId) {
             state[today].vitamins[vitId] = !state[today].vitamins[vitId];
-            saveState();
-            updateUI();
+            saveAndSync();
         }
 
-        // FUNKCE PRO JÍDLO
         function logFood(name, emoji) {
             let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
             state[today].food.push({ name, emoji, time });
-            saveState();
-            updateUI();
+            saveAndSync();
         }
 
-        function saveState() {
+        function saveAndSync() {
             localStorage.setItem('app_tracker_state', JSON.stringify(state));
+            updateUI();
+            syncWithGoogle();
         }
 
-        // AKTUALIZACE GRAFIKY A TEXTŮ
         function updateUI() {
             let data = state[today];
             
-            // Voda
             let pct = Math.min(Math.round((data.water / WATER_GOAL) * 100), 100);
             document.getElementById('water-bar').style.width = pct + '%';
             document.getElementById('water-percentage').innerText = pct + '%';
             let remaining = Math.max(WATER_GOAL - data.water, 0);
             document.getElementById('water-remaining').innerText = remaining > 0 ? `Zbývá ${remaining} ml` : 'Splněno! Dobrá práce. 🎉';
 
-            // Vitamíny
             for (let vit in data.vitamins) {
                 let element = document.getElementById('vit-' + vit);
                 let iconWrapper = element.querySelector('.status-icon');
@@ -203,7 +259,6 @@
                 }
             }
 
-            // Jídlo list
             let foodLog = document.getElementById('food-log');
             if(data.food.length > 0) {
                 foodLog.classList.remove('hidden');
@@ -217,7 +272,6 @@
                 foodLog.classList.add('hidden');
             }
 
-            // Historie (Progres)
             let historyList = document.getElementById('history-list');
             let keys = Object.keys(state).filter(k => k !== today).sort().reverse();
             if(keys.length > 0) {
@@ -225,53 +279,40 @@
                     let dayData = state[k];
                     let vitsDone = Object.values(dayData.vitamins).filter(Boolean).length;
                     return `
-                        <div class="bg-white p-3 rounded-2xl border border-slate-100 flex justify-between items-center">
+                        <div class="bg-white p-3 rounded-2xl border border-slate-100 flex justify-between items-center text-xs">
                             <div>
                                 <span class="font-bold text-slate-800">${new Date(k).toLocaleDateString('cs-CZ', {day: 'numeric', month: 'short'})}</span>
-                                <span class="text-xs text-slate-400 ml-2">Voda: ${dayData.water}ml</span>
+                                <span class="text-slate-400 ml-2">Voda: ${dayData.water}ml</span>
                             </div>
-                            <div class="text-xs font-semibold ${vitsDone === 3 ? 'text-emerald-500' : 'text-amber-500'}">
+                            <div class="font-semibold ${vitsDone === 3 ? 'text-emerald-500' : 'text-amber-500'}">
                                 Vitamíny: ${vitsDone}/3
                             </div>
                         </div>
                     `;
                 }).join('');
+            } else {
+                historyList.innerHTML = `<p class="text-center py-2 text-xs">V cloudu zatím nemáš předchozí dny. Data se ukládají chronologicky.</p>`;
             }
 
             lucide.createIcons();
         }
 
-        // LOKÁLNÍ NOTIFIKACE (Fungují, když je web otevřený na pozadí)
         function requestNotificationPermission() {
-            if (!("Notification" in window)) {
-                alert("Tento prohlížeč nepodporuje notifikace.");
-                return;
-            }
+            if (!("Notification" in window)) return;
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
                     document.getElementById('notif-status').classList.remove('hidden');
-                    // První testovací notifikace za 3 vteřiny
-                    setTimeout(() => {
-                        new Notification("Daily Bio-Tracker", { body: "Notifikace aktivovány! Každé dvě hodiny ti připomenu napít se.", icon: "https://cdn-icons-png.flaticon.com/512/3105/3105807.png" });
-                    }, 3000);
-                    
-                    // Cyklus připomínání každé 2 hodiny (v milisekundách)
+                    new Notification("Daily Bio-Tracker", { body: "Připomenutí aktivováno. Budu ti hlídat Stanley Cup!" });
                     setInterval(() => {
-                        new Notification("Čas na vodu! 🥤", { body: "Dej si lok z tvého Stanley Cupu nebo plechovky, ať držíš flow.", icon: "https://cdn-icons-png.flaticon.com/512/3105/3105807.png" });
+                        new Notification("Čas na vodu! 🥤", { body: "Dej si lok vody, ať držíš flow." });
                     }, 1000 * 60 * 60 * 2); 
                 }
             });
         }
 
-        function clearAllData() {
-            if(confirm('Opravdu chceš smazat celou historii trackeru?')) {
-                localStorage.removeItem('app_tracker_state');
-                location.reload();
-            }
-        }
-
-        // Spuštění při načtení
+        // Start aplikace
         updateUI();
+        loadDataFromGoogle();
     </script>
 </body>
 </html>
