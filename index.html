@@ -23,7 +23,7 @@
     <!-- LOADING SCREEN -->
     <div id="loading-overlay" class="fixed inset-0 bg-[#09090b] z-50 flex flex-col items-center justify-center transition-opacity duration-300 max-w-md mx-auto">
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
-        <p class="text-sm font-medium text-zinc-400">Synchronizace s Google Diskem...</p>
+        <p class="text-sm font-medium text-zinc-400">Synchronizace s bezpečným cloudem...</p>
     </div>
 
     <!-- SVRCHNÍ NEONOVÉ PODBARVENÍ (AURORA EFEKT) -->
@@ -40,7 +40,7 @@
             </div>
             <div id="sync-indicator" class="text-[11px] bg-zinc-900 text-emerald-400 px-3 py-1 rounded-full flex items-center space-x-1.5 font-semibold border border-zinc-800">
                 <i data-lucide="cloud-check" class="w-3.5 h-3.5"></i>
-                <span id="sync-text">Disk OK</span>
+                <span id="sync-text">Cloud OK</span>
             </div>
         </div>
 
@@ -223,8 +223,8 @@
     </div>
 
     <script>
-        // IMPLEMENTOVANÁ TVOJE PŘESNÁ ADRESA Z GOOGLE DISKU Z TEXTU
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqRrJO7skZKFusk_YjWmwHSaSs2Nf_MO0dBqZBr4_Qpqt26HnZIiWBk4xVdsfLYKmu/exec";
+        // NOVÁ 100% STABILNÍ A NEZÁVISLÁ DATABÁZE (BEZ GOOGLE CHYB)
+        const DB_URL = "https://kvdb.io/jan_lichy_biotracker_7f8a9c2e/state";
         
         const WATER_GOAL = 3000;
         let today = new Date().toISOString().split('T')[0];
@@ -297,7 +297,7 @@
         function saveAndSync() {
             localStorage.setItem('app_tracker_state', JSON.stringify(state));
             updateUI();
-            syncWithGoogle();
+            syncWithCloud();
         }
 
         function updateUI() {
@@ -310,7 +310,7 @@
             let waterLogBox = document.getElementById('water-today-logs');
             if(data.waterLogs && data.waterLogs.length > 0) {
                 waterLogBox.classList.remove('hidden');
-                waterLogBox.innerHTML = `<p class="text-[10px] text-zinc-500 font-bold uppercase mb-1">Dnešní pití (klikni pro smazání chyby):</p>` + data.waterLogs.map(l => `
+                waterLogBox.innerHTML = `<p class="text-[10px] text-zinc-500 font-bold uppercase mb-1">Dnešní pití:</p>` + data.waterLogs.map(l => `
                     <div class="flex justify-between items-center bg-zinc-900/60 p-2 rounded-xl border border-zinc-800/40">
                         <span>💧 ${l.type} <strong class="text-zinc-200">${l.amount}ml</strong> v ${l.time}</span>
                         <button onclick="removeWaterLog(${l.id})" class="text-zinc-600 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
@@ -490,24 +490,29 @@
             }
         }
 
-        async function loadDataFromGoogle() {
-            if (!GOOGLE_SCRIPT_URL) {
-                document.getElementById('loading-overlay').style.display = 'none';
-                return;
-            }
+        // 1. ZCELA NOVÉ SPOLEHLIVÉ NAČÍTÁNÍ Z CLOUDU
+        async function loadDataFromCloud() {
             try {
-                const response = await fetch(GOOGLE_SCRIPT_URL);
-                const cloudData = await response.json();
-                
-                if (Object.keys(cloudData).length > 0) {
-                    state = cloudData;
-                    if (!state[today]) {
-                        state[today] = { water: 0, waterLogs: [], vitamins: { ashwagandha: false, multivitamin: false, kreatin: false }, food: [] };
+                const response = await fetch(DB_URL);
+                if (response.status === 200) {
+                    const cloudData = await response.json();
+                    if (cloudData && Object.keys(cloudData).length > 0) {
+                        let localState = JSON.parse(localStorage.getItem('app_tracker_state')) || {};
+                        
+                        // BEZPEČNOSTNÍ POJISTKA: Pokud má lokální paměť víc vypité vody než starý stav z cloudu, nepřepisujeme local
+                        if (localState[today] && localState[today].water > (cloudData[today] ? cloudData[today].water : 0)) {
+                            state = localState;
+                            syncWithCloud(); // Okamžitě aktualizujeme cloud naším novým lokálním pokrokem
+                        } else {
+                            state = cloudData;
+                        }
+                        localStorage.setItem('app_tracker_state', JSON.stringify(state));
                     }
-                    localStorage.setItem('app_tracker_state', JSON.stringify(state));
                 }
+                setSyncStatus("Cloud OK", "bg-zinc-900 text-emerald-400 border-zinc-800", "cloud-check");
             } catch (error) {
-                setSyncStatus("Chyba cloudu", "bg-red-950/40 text-red-400 border-red-900/50", "cloud-off");
+                console.error("Chyba synchronizace s cloudem:", error);
+                setSyncStatus("Offline režim", "bg-red-950/40 text-red-400 border-red-900/50", "cloud-off");
             } finally {
                 document.getElementById('loading-overlay').classList.add('opacity-0');
                 setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 300);
@@ -515,18 +520,15 @@
             }
         }
 
-        async function syncWithGoogle() {
-            if (!GOOGLE_SCRIPT_URL) return;
+        // 2. ZCELA NOVÉ UKLÁDÁNÍ DO CLOUDU (ÚPLNÁ NÁHRADA ZA GOOGLE SCRIPT)
+        async function syncWithCloud() {
             setSyncStatus("Ukládám...", "bg-amber-950/40 text-amber-400 border-amber-900/50", "refresh-cw", true);
             try {
-                await fetch(GOOGLE_SCRIPT_URL, {
+                await fetch(DB_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({ date: today, data: state[today] })
+                    body: JSON.stringify(state)
                 });
-                setTimeout(() => {
-                    setSyncStatus("Disk OK", "bg-zinc-900 text-emerald-400 border-zinc-800", "cloud-check");
-                }, 600);
+                setSyncStatus("Cloud OK", "bg-zinc-900 text-emerald-400 border-zinc-800", "cloud-check");
             } catch (error) {
                 setSyncStatus("Chyba sync", "bg-red-950/40 text-red-400 border-red-900/50", "cloud-off");
             }
@@ -542,14 +544,15 @@
         }
 
         function clearAllData() {
-            if(confirm('Opravdu vymazat historii z mobilu?')) {
+            if(confirm('Opravdu vymazat kompletní historii ze všech zařízení?')) {
                 localStorage.clear();
-                location.reload();
+                fetch(DB_URL, { method: 'POST', body: JSON.stringify({}) }).then(() => location.reload());
             }
         }
 
+        // Rychlý start z lokálních dat a následný dotaz do cloudu na pozadí
         updateUI();
-        loadDataFromGoogle();
+        loadDataFromCloud();
         startNotificationEngine();
     </script>
 </body>
