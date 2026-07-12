@@ -177,7 +177,7 @@
                             <option value="5">5x denně</option>
                         </select>
                     </div>
-                    <button onclick="submitCustomVitaminSystem()" class="w-full bg-purple-600/20 text-purple-400 border border-purple-500/30 py-2 rounded-xl text-xs font-bold transition-all">
+                    <button onclick="submitCustomVitaminSystem()" class="w-full bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-600/30 py-2 rounded-xl text-xs font-bold transition-all">
                         Uložit do seznamu suplementů
                     </button>
                 </div>
@@ -246,7 +246,7 @@
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-4 h-4 text-blue-400"></i> Propojení zařízení přes cloud</h2>
                 <p class="text-[11px] text-zinc-500 leading-relaxed">Zadej stejný unikátní kód na PC i mobilu (např. <code>jan-depo-sync</code>). Aplikace se automaticky sloučí a data budou identická.</p>
                 <div class="flex gap-2">
-                    <input type="text" id="cloud-sync-room-input" placeholder="Zadej synchronizační kód..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500">
+                    <input type="text" id="cloud-sync-room-input" placeholder="Zadej synchronizační kód..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none">
                     <button onclick="saveSyncRoomCode()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Spárovat</button>
                 </div>
             </div>
@@ -440,10 +440,6 @@
             });
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            triggerStarSelect(5);
-        });
-
         function handleLogFoodSubmit() {
             let name = document.getElementById('food-text-description').value.trim();
             if(!name) return;
@@ -460,7 +456,6 @@
             commitLocalChange();
         }
 
-        // FIX: NAZVANÁ FUNKCE SROVNÁNA S VOLÁNÍM
         function renderVitaminsList(data) {
             let coreList = [
                 { id: 'ashwagandha', name: 'Ashwagandha', freq: 1, desc: '1x denně před spaním' },
@@ -498,6 +493,7 @@
             }).join('');
         }
 
+        // FIX: OPRAVENO ID 'dash-bar-water' ABY SKRIPT NEPADAL NA STARTU
         function updateUI() {
             let data = state[activeViewDate];
             if(!data) { initDayStructure(activeViewDate); data = state[activeViewDate]; }
@@ -507,6 +503,7 @@
             document.getElementById('circle-volume-label').innerText = `${data.water} z ${WATER_GOAL} ml`;
             document.getElementById('liquid-wave-fluid').style.height = pct + '%';
 
+            // HLAVNÍ OPRAVA ZDE:
             document.getElementById('dash-bar-water').style.width = pct + '%';
             document.getElementById('dash-text-water').innerText = `${data.water} / ${WATER_GOAL} ml`;
 
@@ -717,6 +714,7 @@
             if (!config.syncRoom) {
                 document.getElementById('loading-overlay').style.display = 'none';
                 setSyncLabelStatus("Lokální režim", "bg-zinc-900 text-zinc-400 border-zinc-800", "cloud");
+                updateUI();
                 return;
             }
             setSyncLabelStatus("Propojování...", "bg-zinc-900 text-amber-400 border-zinc-800", "refresh-cw", true);
@@ -775,7 +773,7 @@
         }
 
         triggerSelectFoodCategory('Oběd');
-        updateUI();
+        triggerStarSelect(5);
         loadAndMergeDataFromCloudSystem();
         startNotificationEngine();
     </script>
