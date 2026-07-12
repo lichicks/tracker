@@ -3,51 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio-Tracker Pro</title>
-    <!-- Tailwind CSS -->
+    <title>Trackerrr</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Lucide Ikony -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #09090b; color: #f4f4f5; -webkit-tap-highlight-color: transparent; }
         .glass-card { background: rgba(20, 20, 23, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(63, 63, 70, 0.35); }
         .glow-active { box-shadow: 0 0 35px -5px rgba(56, 189, 248, 0.2); }
         
-        /* Čistý Material Design kruh vody inspirovaný tvým screenshotem */
-        .water-circle {
-            position: relative;
-            width: 170px;
-            height: 170px;
-            border-radius: 50%;
-            background-color: #121214;
-            border: 2px solid #27272a;
-            overflow: hidden;
-            display: flex;
-            align-items: flex-end; /* Voda se plní odspodu */
-            box-shadow: inset 0px 4px 15px rgba(0,0,0,0.5);
-        }
-        
-        /* Hladina vody */
-        .water-fill {
-            width: 100%;
-            background: linear-gradient(to bottom, #38bdf8, #1d4ed8);
-            transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            pointer-events: none; /* Zabraňuje blokování kliknutí */
-        }
-        
-        /* Zakřivený vrcholek (ellipsa) na hladině */
-        .water-fill::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: -10%;
-            width: 120%;
-            height: 12px;
-            background-color: #38bdf8;
-            border-radius: 50%;
-            pointer-events: none;
-        }
+        /* Blurred Material Design Water */
+        .wave-container { position: relative; width: 170px; height: 170px; border-radius: 50%; background-color: #121214; border: 2px solid #27272a; overflow: hidden; display: flex; align-items: flex-end; box-shadow: inset 0px 4px 15px rgba(0,0,0,0.5); }
+        .water-fill { width: 100%; background: linear-gradient(to bottom, #38bdf8, #1d4ed8); transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1); position: relative; pointer-events: none; }
+        .water-fill::before { content: ''; position: absolute; top: -6px; left: -10%; width: 120%; height: 12px; background-color: #38bdf8; border-radius: 50%; pointer-events: none; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
@@ -57,7 +24,7 @@
     <!-- NAČÍTACÍ OBRAZOVKA -->
     <div id="loading-overlay" class="fixed inset-0 bg-[#09090b] z-50 flex flex-col items-center justify-center transition-opacity duration-300 max-w-md mx-auto">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-3"></div>
-        <p class="text-xs font-semibold text-zinc-400 tracking-wider">Start aplikace...</p>
+        <p class="text-xs font-semibold text-zinc-400 tracking-wider">Start Trackerrr...</p>
     </div>
 
     <!-- BACKGROUND NEON SHADOW -->
@@ -68,8 +35,8 @@
         <!-- TOP LIŠTA -->
         <div class="flex justify-between items-center mb-5 px-1">
             <div>
-                <p class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Bio-Tracker Pro</p>
-                <h1 id="page-title" class="text-xl font-black text-white tracking-tight">Přehled</h1>
+                <p class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Aplikace</p>
+                <h1 id="page-title" class="text-xl font-black text-white tracking-tight">Trackerrr</h1>
             </div>
             <div id="sync-indicator" onclick="triggerManualSync()" class="text-[11px] bg-zinc-900 text-zinc-400 px-3 py-1 rounded-full flex items-center space-x-1.5 font-bold border border-zinc-800 cursor-pointer transition-all active:scale-95">
                 <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
@@ -78,8 +45,8 @@
         </div>
 
         <div id="past-day-alert" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 mb-4 text-xs flex justify-between items-center text-amber-400">
-            <span>Zobrazuji minulost.</span>
-            <button onclick="jumpToToday()" class="bg-amber-500 text-black px-2 py-0.5 rounded font-bold text-[10px]">Dnešek</button>
+            <span>Zobrazuji historii ze zvoleného dne.</span>
+            <button onclick="jumpToToday()" class="bg-amber-500 text-black px-2 py-0.5 rounded font-bold text-[10px] active:scale-95 transition-transform">Zpět na dnešek</button>
         </div>
 
         <!-- ================= OBRAZOVKA 1: DASHBOARD ================= -->
@@ -102,7 +69,7 @@
                 </div>
             </div>
 
-            <!-- OPRAVENÝ MATERIAL DESIGN WATER CONTAINER -->
+            <!-- VODA ANIMACE -->
             <div class="flex flex-col items-center justify-center py-2">
                 <div class="water-circle glow-active cursor-pointer" onclick="switchTab('water')">
                     <div id="liquid-wave-fluid" class="water-fill" style="height: 0%;"></div>
@@ -164,17 +131,22 @@
                 </div>
 
                 <div class="grid grid-cols-3 gap-2.5 mb-5">
-                    <button onclick="handleLogWater(900, 'Stanley Cup')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col items-center justify-center active:scale-95 transition-transform">
+                    <button onclick="handleLogWater(900, 'Stanley Cup')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col items-center justify-center active:scale-95 transition-transform shadow-sm">
                         <svg class="w-5 h-5 text-blue-400 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1" /><path d="M6 6h10v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" /><line x1="11" y1="2" x2="11" y2="6" /></svg>
                         <span class="text-[10px] font-bold text-zinc-200">Stanley Cup</span>
                         <span class="text-[9px] text-zinc-500">900 ml</span>
                     </button>
-                    <button onclick="handleLogWater(500, 'Plechovka')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col items-center justify-center active:scale-95 transition-transform">
-                        <i data-lucide="cylinder" class="w-5 h-5 text-sky-400 mb-1"></i>
-                        <span class="text-[10px] font-bold text-zinc-200">Plechovka</span>
+                    <!-- Monster Ikona -->
+                    <button onclick="handleLogWater(500, 'Monster Energy')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col items-center justify-center active:scale-95 transition-transform shadow-sm">
+                        <svg class="w-5 h-5 text-emerald-500 mb-1 drop-shadow-[0_0_5px_rgba(16,185,129,0.4)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2h12v20H6z" />
+                            <path d="M6 6h12" />
+                            <path d="M14 10l-4 4h4l-4 4" />
+                        </svg>
+                        <span class="text-[10px] font-bold text-zinc-200">Monster</span>
                         <span class="text-[9px] text-zinc-500">500 ml</span>
                     </button>
-                    <button onclick="handleLogWater(250, 'Sklenička')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col items-center justify-center active:scale-95 transition-transform">
+                    <button onclick="handleLogWater(250, 'Sklenička')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col items-center justify-center active:scale-95 transition-transform shadow-sm">
                         <i data-lucide="glass-water" class="w-5 h-5 text-indigo-400 mb-1"></i>
                         <span class="text-[10px] font-bold text-zinc-200">Sklenička</span>
                         <span class="text-[9px] text-zinc-500">250 ml</span>
@@ -193,11 +165,10 @@
                 <h2 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-4">Suplementace pro vybraný den</h2>
                 <div id="vitamins-dynamic-list" class="space-y-3"></div>
 
-                <!-- PŘIDÁVÁNÍ VLASTNÍCH -->
                 <div class="mt-6 pt-5 border-t border-zinc-800/80 space-y-3">
-                    <h3 class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">➕ Vytvořit další vlastní suplement</h3>
+                    <h3 class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">➕ Přidat nový suplement</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="custom-vit-name-input" placeholder="Název (např. Omega 3)" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        <input type="text" id="custom-vit-name-input" placeholder="Název (např. Omega 3)" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
                         <select id="custom-vit-freq-select" class="bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-2 text-xs text-white focus:outline-none">
                             <option value="1">1x denně</option>
                             <option value="2">2x denně</option>
@@ -205,8 +176,8 @@
                             <option value="5">5x denně</option>
                         </select>
                     </div>
-                    <button onclick="submitCustomVitaminSystem()" class="w-full bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-600/30 py-2 rounded-xl text-xs font-bold transition-all active:scale-95">
-                        Uložit do seznamu suplementů
+                    <button onclick="submitCustomVitaminSystem()" class="w-full bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-600/30 py-2 rounded-xl text-xs font-bold transition-transform active:scale-95">
+                        Uložit do seznamu
                     </button>
                 </div>
             </div>
@@ -222,34 +193,39 @@
                 <!-- Kategorie -->
                 <div class="grid grid-cols-3 gap-2" id="food-category-toggle-box">
                     <button onclick="triggerSelectFoodCategory('Snídaně')" id="foodcat-Snídaně" class="py-2 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Snídaně</button>
-                    <button onclick="triggerSelectFoodCategory('Oběd')" id="foodcat-Oběd" class="py-2 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Oběd</button>
+                    <button onclick="triggerSelectFoodCategory('Oběd')" id="foodcat-Oběd" class="py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/50 text-amber-400 active:scale-95 transition-transform">Oběd</button>
                     <button onclick="triggerSelectFoodCategory('Večeře')" id="foodcat-Večeře" class="py-2 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Večeře</button>
                 </div>
 
-                <!-- Šablony -->
+                <!-- Šablony (jen název podniku) -->
                 <div class="grid grid-cols-4 gap-1.5 text-[10px] text-zinc-400">
-                    <button onclick="injectFoodTemplate('Bageterie Boulevard', '🥖')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95">🥖 BB</button>
-                    <button onclick="injectFoodTemplate('McDonald\'s', '🍔')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95">🍔 Mekáč</button>
-                    <button onclick="injectFoodTemplate('Pizza', '🍕')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95">🍕 Pizza</button>
-                    <button onclick="injectFoodTemplate('Domácí jídlo', '🍳')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95">🍳 Domácí</button>
+                    <button onclick="injectFoodTemplate('Bageterie Boulevard', '🥖')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95 transition-transform">🥖 BB</button>
+                    <button onclick="injectFoodTemplate('McDonald\'s', '🍔')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95 transition-transform">🍔 Mekáč</button>
+                    <button onclick="injectFoodTemplate('Pizza', '🍕')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95 transition-transform">🍕 Pizza</button>
+                    <button onclick="injectFoodTemplate('Domácí', '🍳')" class="bg-zinc-900 border border-zinc-800 p-2 rounded-lg active:scale-95 transition-transform">🍳 Domácí</button>
                 </div>
 
-                <input type="text" id="food-text-description" placeholder="Název jídla / specifikace..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                <!-- Oddělené textové pole pro detail -->
+                <div class="flex space-x-2">
+                    <div class="flex items-center justify-center bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-lg" id="food-emoji-preview">🍳</div>
+                    <input type="text" id="food-place-input" placeholder="Podnik (Mekáč)" class="w-1/3 bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500" value="Domácí">
+                    <input type="text" id="food-detail-input" placeholder="Co jsi tam měl? (např. BigMac Menu)" class="w-2/3 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                </div>
 
                 <!-- HVĚZDIČKY -->
                 <div class="flex items-center justify-between bg-zinc-900/50 p-3 rounded-xl border border-zinc-800">
                     <span class="text-xs text-zinc-400 font-semibold">Chutnost:</span>
                     <div class="flex space-x-2 text-zinc-600 font-mono select-none text-2xl" id="stars-pure-html-row">
-                        <span onclick="triggerStarSelect(1)" class="html-star cursor-pointer transition-colors">★</span>
-                        <span onclick="triggerStarSelect(2)" class="html-star cursor-pointer transition-colors">★</span>
-                        <span onclick="triggerStarSelect(3)" class="html-star cursor-pointer transition-colors">★</span>
-                        <span onclick="triggerStarSelect(4)" class="html-star cursor-pointer transition-colors">★</span>
-                        <span onclick="triggerStarSelect(5)" class="html-star cursor-pointer transition-colors">★</span>
+                        <span onclick="triggerStarSelect(1)" class="html-star cursor-pointer transition-colors text-amber-400">★</span>
+                        <span onclick="triggerStarSelect(2)" class="html-star cursor-pointer transition-colors text-amber-400">★</span>
+                        <span onclick="triggerStarSelect(3)" class="html-star cursor-pointer transition-colors text-amber-400">★</span>
+                        <span onclick="triggerStarSelect(4)" class="html-star cursor-pointer transition-colors text-amber-400">★</span>
+                        <span onclick="triggerStarSelect(5)" class="html-star cursor-pointer transition-colors text-amber-400">★</span>
                     </div>
                 </div>
 
-                <button onclick="handleLogFoodSubmit()" class="w-full bg-amber-500 text-black py-2.5 rounded-xl text-xs font-black active:scale-95 transition-transform">
-                    Uložit jídlo do historie dne
+                <button onclick="handleLogFoodSubmit()" class="w-full bg-amber-500 text-black py-2.5 rounded-xl text-xs font-black active:scale-95 transition-transform shadow-md shadow-amber-500/20">
+                    Uložit jídlo do historie
                 </button>
             </div>
 
@@ -269,12 +245,12 @@
         <!-- ================= OBRAZOVKA 5: ANALÝZA & SYNCHRONIZACE ================= -->
         <div id="view-settings" class="space-y-5 tab-view hidden">
             
-            <!-- SYNCHRONIZACE KÓD -->
+            <!-- SYNCHRONIZACE JSONBASE -->
             <div class="glass-card rounded-3xl p-5 space-y-3.5">
-                <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-4 h-4 text-blue-400"></i> Propojení zařízení</h2>
-                <p class="text-[11px] text-zinc-500 leading-relaxed">Zadej libovolný unikátní kód na PC i mobilu (např. <code>mojedata123</code>). Aplikace se ihned spojí a data budou identická.</p>
+                <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-4 h-4 text-blue-400"></i> Cloudová synchronizace</h2>
+                <p class="text-[11px] text-zinc-500 leading-relaxed">Zadej stejný kód (např. <code>jenda</code>) na PC i mobilu. Trackerrr data okamžitě spojí.</p>
                 <div class="flex gap-2">
-                    <input type="text" id="cloud-sync-room-input" placeholder="Zadej synchronizační kód..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none">
+                    <input type="text" id="cloud-sync-room-input" placeholder="Zadej synchronizační kód..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500">
                     <button onclick="saveSyncRoomCode()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-transform">Spárovat</button>
                 </div>
             </div>
@@ -295,22 +271,22 @@
                 </div>
             </div>
 
-            <!-- NOTIFIKACE -->
+            <!-- NOTIFIKACE (NOČNÍ REŽIM) -->
             <div class="glass-card rounded-3xl p-5">
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider mb-4">Systém push notifikací</h2>
                 <div class="space-y-4">
                     <div class="flex justify-between items-center bg-zinc-900/50 p-3 rounded-xl border border-zinc-800">
                         <div>
                             <p class="text-xs font-bold text-zinc-200">Připomínat pití</p>
-                            <p class="text-[9px] text-zinc-500">Upozornění na plochu</p>
+                            <p class="text-[9px] text-emerald-500/80 font-bold mt-0.5">Tichý režim aktivní (22:00-07:00)</p>
                         </div>
-                        <button onclick="handleToggleNotifSystem()" id="btn-toggle-notifs" class="px-3 py-1 bg-zinc-800 text-zinc-500 font-bold rounded-lg text-[10px] uppercase active:scale-95">Vypnuto</button>
+                        <button onclick="handleToggleNotifSystem()" id="btn-toggle-notifs" class="px-3 py-1 bg-zinc-800 text-zinc-500 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform">Vypnuto</button>
                     </div>
-                    <div id="notif-interval-wrapper" class="space-y-2 opacity-40 pointer-events-none">
+                    <div id="notif-interval-wrapper" class="space-y-2 opacity-40 pointer-events-none transition-opacity">
                         <div class="grid grid-cols-3 gap-2 text-[10px] font-bold text-center">
-                            <button onclick="handleChangeNotifTime(60)" id="int-btn-60" class="bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg active:scale-95">1 Hodina</button>
-                            <button onclick="handleChangeNotifTime(120)" id="int-btn-120" class="bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg active:scale-95">2 Hodiny</button>
-                            <button onclick="handleChangeNotifTime(180)" id="int-btn-180" class="bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg active:scale-95">3 Hodiny</button>
+                            <button onclick="handleChangeNotifTime(60)" id="int-btn-60" class="bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg active:scale-95 transition-transform">1 Hodina</button>
+                            <button onclick="handleChangeNotifTime(120)" id="int-btn-120" class="bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg active:scale-95 transition-transform">2 Hodiny</button>
+                            <button onclick="handleChangeNotifTime(180)" id="int-btn-180" class="bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg active:scale-95 transition-transform">3 Hodiny</button>
                         </div>
                     </div>
                 </div>
@@ -333,7 +309,7 @@
     </div>
 
     <script>
-        const DB_URL = "https://kvdb.io/jan_lichy_biotracker_7f8a9c2e/state";
+        const CLOUD_API_URL = "https://jsonbase.com/trackerrr_app_v2/";
         const WATER_GOAL = 2100;
         
         let currentDayObject = new Date();
@@ -352,11 +328,21 @@
         let today = new Date().toISOString().split('T')[0];
         let activeViewDate = today;
 
-        let state = JSON.parse(localStorage.getItem('biotracker_pro_state_v4')) || {};
-        let config = JSON.parse(localStorage.getItem('biotracker_pro_config_v4')) || {
-            notifEnabled: false, notifInterval: 120, statsPeriod: 'week', syncRoom: '', customSuplementsList: []
+        let state = JSON.parse(localStorage.getItem('trackerrr_state_v1')) || {};
+        let config = JSON.parse(localStorage.getItem('trackerrr_config_v1')) || {
+            notifEnabled: false, notifInterval: 120, statsPeriod: 'week', syncRoom: '', customSuplementsList: [], initialized: false
         };
-        if(!config.customSuplementsList) config.customSuplementsList = [];
+
+        // Přesunutí výchozích vitamínů do upravitelného pole
+        if (!config.initialized) {
+            config.customSuplementsList = [
+                { id: 'ashwagandha', name: 'Ashwagandha', frequency: 1, desc: 'Před spaním / regenerace' },
+                { id: 'multivitamin', name: 'Multivitamin', frequency: 3, desc: 'S jídlem / mikroživiny' },
+                { id: 'kreatin', name: 'Kreatin', frequency: 5, desc: 'Fyzická síla / výkon' }
+            ];
+            config.initialized = true;
+            localStorage.setItem('trackerrr_config_v1', JSON.stringify(config));
+        }
 
         let currentFoodCategory = 'Oběd';
         let currentStarsRating = 5;
@@ -364,14 +350,17 @@
         let globalNotifTimer = null;
         let debounceTimer = null;
 
+        function hapticFeedback() {
+            if (window.navigator && window.navigator.vibrate) {
+                navigator.vibrate(40);
+            }
+        }
+
         function initDayStructure(dateKey) {
             if (!state[dateKey]) state[dateKey] = { water: 0, waterLogs: [], vitamins: {}, food: [] };
             if (!state[dateKey].waterLogs) state[dateKey].waterLogs = [];
             if (!state[dateKey].food) state[dateKey].food = [];
             if (!state[dateKey].vitamins) state[dateKey].vitamins = {};
-            if (!state[dateKey].vitamins.ashwagandha) state[dateKey].vitamins.ashwagandha = [];
-            if (!state[dateKey].vitamins.multivitamin) state[dateKey].vitamins.multivitamin = [];
-            if (!state[dateKey].vitamins.kreatin) state[dateKey].vitamins.kreatin = [];
             
             let correctSum = state[dateKey].waterLogs.reduce((acc, c) => acc + parseInt(c.amount || 0), 0);
             state[dateKey].water = correctSum;
@@ -380,6 +369,7 @@
         initDayStructure(today);
 
         function selectActiveDay(index) {
+            hapticFeedback();
             activeViewDate = weekKeys[index];
             initDayStructure(activeViewDate);
             const alertBox = document.getElementById('past-day-alert');
@@ -389,13 +379,15 @@
         }
 
         function jumpToToday() {
+            hapticFeedback();
             activeViewDate = today;
             document.getElementById('past-day-alert').classList.add('hidden');
             updateUI();
         }
 
         function commitLocalChange() {
-            localStorage.setItem('biotracker_pro_state_v4', JSON.stringify(state));
+            hapticFeedback();
+            localStorage.setItem('trackerrr_state_v1', JSON.stringify(state));
             updateUI();
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(triggerSilentCloudUpload, 1000);
@@ -427,9 +419,11 @@
         }
 
         function handleRemoveCustomSuplement(id) {
-            config.customSuplementsList = config.customSuplementsList.filter(s => s.id !== id);
-            localStorage.setItem('biotracker_pro_config_v4', JSON.stringify(config));
-            commitLocalChange();
+            if(confirm("Opravdu smazat tento suplement?")) {
+                config.customSuplementsList = config.customSuplementsList.filter(s => s.id !== id);
+                localStorage.setItem('trackerrr_config_v1', JSON.stringify(config));
+                commitLocalChange();
+            }
         }
 
         function submitCustomVitaminSystem() {
@@ -439,7 +433,7 @@
             if(!name) return;
             let id = 'c_' + Date.now();
             config.customSuplementsList.push({ id, name, frequency: freq });
-            localStorage.setItem('biotracker_pro_config_v4', JSON.stringify(config));
+            localStorage.setItem('trackerrr_config_v1', JSON.stringify(config));
             input.value = '';
             initDayStructure(activeViewDate);
             state[activeViewDate].vitamins[id] = [];
@@ -447,6 +441,7 @@
         }
 
         function triggerSelectFoodCategory(cat) {
+            hapticFeedback();
             currentFoodCategory = cat;
             document.querySelectorAll('#food-category-toggle-box button').forEach(b => {
                 b.className = "py-2 rounded-xl text-xs font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform";
@@ -454,27 +449,37 @@
             document.getElementById('foodcat-' + cat).className = "py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/50 text-amber-400 active:scale-95 transition-transform";
         }
 
-        function injectFoodTemplate(text, emoji) {
-            document.getElementById('food-text-description').value = text + ": ";
+        function injectFoodTemplate(place, emoji) {
+            hapticFeedback();
+            document.getElementById('food-place-input').value = place;
+            document.getElementById('food-emoji-preview').innerText = emoji;
             currentFoodEmoji = emoji;
+            document.getElementById('food-detail-input').focus();
         }
 
         function triggerStarSelect(stars) {
+            hapticFeedback();
             currentStarsRating = stars;
             const starSpans = document.querySelectorAll('.html-star');
             starSpans.forEach((s, idx) => {
-                if(idx < stars) s.className = "html-star cursor-pointer text-amber-400";
-                else s.className = "html-star cursor-pointer text-zinc-700";
+                if(idx < stars) s.className = "html-star cursor-pointer text-amber-400 transition-colors";
+                else s.className = "html-star cursor-pointer text-zinc-700 transition-colors";
             });
         }
 
         function handleLogFoodSubmit() {
-            let name = document.getElementById('food-text-description').value.trim();
-            if(!name) return;
+            let place = document.getElementById('food-place-input').value.trim();
+            let detail = document.getElementById('food-detail-input').value.trim();
+            if(!place && !detail) return;
+            
+            let finalName = place;
+            if(detail) finalName = place ? `${place} | ${detail}` : detail;
+
             let id = Date.now();
             let time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-            state[activeViewDate].food.push({ id, category: currentFoodCategory, name, emoji: currentFoodEmoji, stars: currentStarsRating, time });
-            document.getElementById('food-text-description').value = '';
+            state[activeViewDate].food.push({ id, category: currentFoodCategory, name: finalName, emoji: currentFoodEmoji, stars: currentStarsRating, time });
+            
+            document.getElementById('food-detail-input').value = '';
             triggerStarSelect(5);
             commitLocalChange();
         }
@@ -485,6 +490,7 @@
         }
 
         function switchTab(tabId) {
+            hapticFeedback();
             document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
             document.querySelectorAll('[id^="nav-"]').forEach(btn => btn.className = "flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-transform active:scale-95");
             
@@ -518,11 +524,8 @@
                     document.getElementById('dash-text-water').innerText = `${data.water} / ${WATER_GOAL} ml`;
                 }
 
-                let totalVitsTarget = 1 + 3 + 5 + config.customSuplementsList.reduce((acc, c) => acc + c.frequency, 0);
+                let totalVitsTarget = config.customSuplementsList.reduce((acc, c) => acc + c.frequency, 0);
                 let totalVitsDone = 0;
-                totalVitsDone += Math.min((data.vitamins.ashwagandha || []).length, 1);
-                totalVitsDone += Math.min((data.vitamins.multivitamin || []).length, 3);
-                totalVitsDone += Math.min((data.vitamins.kreatin || []).length, 5);
                 config.customSuplementsList.forEach(s => { totalVitsDone += Math.min((data.vitamins[s.id] || []).length, s.frequency); });
                 let vitPct = totalVitsTarget > 0 ? Math.round((totalVitsDone / totalVitsTarget) * 100) : 0;
                 
@@ -535,42 +538,38 @@
                 let hasLunch = data.food.some(f => f.category === 'Oběd');
                 let hasDinner = data.food.some(f => f.category === 'Večeře');
                 if(document.getElementById('dash-food-s1')) {
-                    document.getElementById('dash-food-s1').className = hasBreakfast ? "h-1.5 flex-1 bg-amber-500 rounded-sm" : "h-1.5 flex-1 bg-zinc-800 rounded-sm";
-                    document.getElementById('dash-food-s2').className = hasLunch ? "h-1.5 flex-1 bg-amber-500 rounded-sm" : "h-1.5 flex-1 bg-zinc-800 rounded-sm";
-                    document.getElementById('dash-food-s3').className = hasDinner ? "h-1.5 flex-1 bg-amber-500 rounded-sm" : "h-1.5 flex-1 bg-zinc-800 rounded-sm";
+                    document.getElementById('dash-food-s1').className = hasBreakfast ? "h-1.5 flex-1 bg-amber-500 rounded-sm transition-colors" : "h-1.5 flex-1 bg-zinc-800 rounded-sm transition-colors";
+                    document.getElementById('dash-food-s2').className = hasLunch ? "h-1.5 flex-1 bg-amber-500 rounded-sm transition-colors" : "h-1.5 flex-1 bg-zinc-800 rounded-sm transition-colors";
+                    document.getElementById('dash-food-s3').className = hasDinner ? "h-1.5 flex-1 bg-amber-500 rounded-sm transition-colors" : "h-1.5 flex-1 bg-zinc-800 rounded-sm transition-colors";
                     document.getElementById('dash-text-food').innerText = `${[hasBreakfast, hasLunch, hasDinner].filter(Boolean).length} / 3 chody`;
                 }
 
-                if(document.getElementById('water-detail-current-label')) {
-                    document.getElementById('water-detail-current-label').innerText = data.water;
-                    let waterLogsBox = document.getElementById('water-today-logs-box');
-                    if(data.waterLogs.length > 0) {
-                        waterLogsBox.innerHTML = data.waterLogs.map(l => `
-                            <div class="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80">
-                                <span>💧 ${l.type} <strong class="text-white ml-0.5">${l.amount}ml</strong> <span class="text-zinc-500 text-[10px] ml-1">${l.time}</span></span>
-                                <button onclick="handleRemoveWaterItem(${l.id})" class="text-zinc-500 hover:text-red-400 font-bold px-1.5 py-1">✕</button>
-                            </div>
-                        `).join('');
-                    } else { waterLogsBox.innerHTML = `<p class="text-center py-5 text-zinc-600 text-xs">Bez logů vody.</p>`; }
-                }
+                document.getElementById('water-detail-current-label').innerText = data.water;
+                let waterLogsBox = document.getElementById('water-today-logs-box');
+                if(data.waterLogs.length > 0) {
+                    waterLogsBox.innerHTML = data.waterLogs.map(l => `
+                        <div class="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/80">
+                            <span>💧 ${l.type} <strong class="text-white ml-0.5">${l.amount}ml</strong> <span class="text-zinc-500 text-[10px] ml-1">${l.time}</span></span>
+                            <button onclick="handleRemoveWaterItem(${l.id})" class="text-zinc-500 hover:text-red-400 font-bold px-1.5 py-1">✕</button>
+                        </div>
+                    `).join('');
+                } else { waterLogsBox.innerHTML = `<p class="text-center py-5 text-zinc-600 text-xs">Bez logů vody.</p>`; }
 
                 renderVitaminsList(data);
 
-                if(document.getElementById('food-today-logs-box')) {
-                    let foodLogBox = document.getElementById('food-today-logs-box');
-                    if(data.food.length > 0) {
-                        foodLogBox.innerHTML = data.food.map(f => `
-                            <div class="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs">
-                                <div>
-                                    <span class="bg-zinc-800 text-zinc-500 font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wide mr-1">${f.category}</span>
-                                    <span class="text-zinc-100 font-medium">${f.emoji} ${f.name}</span>
-                                    <div class="text-amber-400 font-mono text-[10px] mt-0.5">${'★'.repeat(f.stars)}</div>
-                                </div>
-                                <button onclick="handleRemoveFoodItem(${f.id})" class="text-zinc-500 hover:text-red-400 font-bold px-1.5 py-1">✕</button>
+                let foodLogBox = document.getElementById('food-today-logs-box');
+                if(data.food.length > 0) {
+                    foodLogBox.innerHTML = data.food.map(f => `
+                        <div class="flex justify-between items-center bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs">
+                            <div>
+                                <span class="bg-zinc-800 text-zinc-500 font-black px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wide mr-1">${f.category}</span>
+                                <span class="text-zinc-100 font-medium">${f.emoji} ${f.name}</span>
+                                <div class="text-amber-400 font-mono text-[10px] mt-0.5">${'★'.repeat(f.stars)}</div>
                             </div>
-                        `).join('');
-                    } else { foodLogBox.innerHTML = `<p class="text-center py-4 text-zinc-600 text-xs">Bez záznamu jídla.</p>`; }
-                }
+                            <button onclick="handleRemoveFoodItem(${f.id})" class="text-zinc-500 hover:text-red-400 font-bold px-1.5 py-1">✕</button>
+                        </div>
+                    `).join('');
+                } else { foodLogBox.innerHTML = `<p class="text-center py-4 text-zinc-600 text-xs">Bez záznamu jídla.</p>`; }
 
                 renderFavoriteMealsBox();
                 renderAnalyticsChartsWrapper();
@@ -585,35 +584,25 @@
             let container = document.getElementById('vitamins-dynamic-list');
             if(!container) return;
             
-            let coreList = [
-                { id: 'ashwagandha', name: 'Ashwagandha', freq: 1, desc: '1x denně před spaním' },
-                { id: 'multivitamin', name: 'Multivitamin', freq: 3, desc: '3x denně s jídlem' },
-                { id: 'kreatin', name: 'Kreatin', freq: 5, desc: '5x denně' }
-            ];
-            config.customSuplementsList.forEach(s => {
-                coreList.push({ id: s.id, name: s.name, freq: s.frequency, desc: 'Vlastní suplement', custom: true });
-            });
-
-            container.innerHTML = coreList.map(v => {
+            container.innerHTML = config.customSuplementsList.map(v => {
                 let count = (data.vitamins[v.id] || []).length;
                 let circlesHtml = '';
-                for(let i=0; i < v.freq; i++) {
+                for(let i=0; i < v.frequency; i++) {
                     let active = count > i;
                     circlesHtml += `
-                        <button onclick="handleToggleVitaminCell('${v.id}', ${i})" class="w-6 h-6 rounded-md font-bold text-[10px] border transition-all ${active ? 'bg-purple-600 border-purple-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-600'}">
+                        <button onclick="handleToggleVitaminCell('${v.id}', ${i})" class="w-6 h-6 rounded-md font-bold text-[10px] border transition-all active:scale-90 ${active ? 'bg-purple-600 border-purple-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-600'}">
                             ${i + 1}
                         </button>
                     `;
                 }
-                let deleteBtn = v.custom ? `<button onclick="handleRemoveCustomSuplement('${v.id}')" class="text-[10px] font-bold text-zinc-600 hover:text-red-400 ml-2 border border-zinc-800 px-1.5 py-0.5 rounded">✕</button>` : '';
                 return `
                     <div class="flex items-center justify-between p-3.5 bg-zinc-900/40 border border-zinc-800 rounded-2xl">
                         <div>
                             <div class="flex items-baseline">
                                 <p class="font-bold text-xs text-zinc-200">${v.name}</p>
-                                ${deleteBtn}
+                                <button onclick="handleRemoveCustomSuplement('${v.id}')" class="text-[10px] font-bold text-zinc-600 hover:text-red-400 ml-2 border border-zinc-800 px-1.5 py-0.5 rounded transition-colors">✕</button>
                             </div>
-                            <p class="text-[9px] text-zinc-500 mt-0.5">${v.desc}</p>
+                            <p class="text-[9px] text-zinc-500 mt-0.5">${v.desc || 'Vlastní suplement'}</p>
                         </div>
                         <div class="flex space-x-1">${circlesHtml}</div>
                     </div>
@@ -633,7 +622,7 @@
             });
             if(uniq.length > 0) {
                 box.innerHTML = uniq.slice(0, 4).map(f => `<div class="bg-zinc-900/40 border border-zinc-800 p-2 rounded-xl flex justify-between px-3"><span>${f.emoji} ${f.name}</span><span class="text-amber-400 font-bold font-mono">★ ${f.stars}</span></div>`).join('');
-            } else { box.innerHTML = `<p class="text-center text-zinc-600 text-[10px] py-1">Bez oblíbených jídel.</p>`; }
+            } else { box.innerHTML = `<p class="text-center text-zinc-600 text-[10px] py-1">Zatím bez oblíbených jídel.</p>`; }
         }
 
         function renderAnalyticsChartsWrapper() {
@@ -648,7 +637,7 @@
                     let barPct = Math.min(Math.round((dayData.water / WATER_GOAL) * 100), 100);
                     let dObj = new Date(key);
                     let label = dObj.toLocaleDateString('cs-CZ', { weekday: 'short' }).slice(0, 2);
-                    bHtml += `<div class="flex-1 flex flex-col justify-end h-full"><div class="w-full bg-blue-500 rounded-t-xs" style="height: ${barPct}%"></div></div>`;
+                    bHtml += `<div class="flex-1 flex flex-col justify-end h-full"><div class="w-full bg-blue-500 rounded-t-sm" style="height: ${barPct}%"></div></div>`;
                     lHtml += `<span class="flex-1 text-center">${label}</span>`;
                 });
             } else {
@@ -661,14 +650,14 @@
                     }
                     let avg = Math.round(sum / 7);
                     let barPct = Math.min(Math.round((avg / WATER_GOAL) * 100), 100);
-                    bHtml += `<div class="flex-1 flex flex-col justify-end h-full px-2"><div class="w-full bg-purple-500 rounded-t-xs" style="height: ${barPct}%"></div></div>`;
+                    bHtml += `<div class="flex-1 flex flex-col justify-end h-full px-2"><div class="w-full bg-purple-500 rounded-t-sm" style="height: ${barPct}%"></div></div>`;
                     lHtml += `<span class="flex-1 text-center">T-${w}</span>`;
                 }
             }
             bCont.innerHTML = bHtml; lCont.innerHTML = lHtml;
         }
 
-        function triggerChangePeriod(p) { config.statsPeriod = p; localStorage.setItem('biotracker_pro_config_v4', JSON.stringify(config)); updateUI(); }
+        function triggerChangePeriod(p) { hapticFeedback(); config.statsPeriod = p; localStorage.setItem('trackerrr_config_v1', JSON.stringify(config)); updateUI(); }
 
         function updateCalendarWidgetDays() {
             weekKeys.forEach((key, i) => {
@@ -680,17 +669,17 @@
                 if(wrapper) {
                     let circle = wrapper.querySelector('div');
                     if(key === activeViewDate) {
-                        circle.className = "w-7 h-7 rounded-full bg-blue-500/10 border-2 border-blue-400 flex items-center justify-center text-[9px] text-white font-black shadow-[0_0_8px_rgba(56,189,248,0.3)]";
+                        circle.className = "w-7 h-7 rounded-full bg-blue-500/10 border-2 border-blue-400 flex items-center justify-center text-[9px] text-white font-black shadow-[0_0_8px_rgba(56,189,248,0.3)] transition-all";
                         circle.innerText = Math.round(dayPct*100) + '%';
                     } else {
                         if (dayPct >= 1) {
-                            circle.className = "w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/60 flex items-center justify-center text-xs text-emerald-400 font-bold";
+                            circle.className = "w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/60 flex items-center justify-center text-xs text-emerald-400 font-bold transition-all";
                             circle.innerText = '✓';
                         } else if (dayWater > 0) {
-                            circle.className = "w-7 h-7 rounded-full bg-zinc-800 border border-blue-500/30 flex items-center justify-center text-[9px] text-blue-400";
+                            circle.className = "w-7 h-7 rounded-full bg-zinc-800 border border-blue-500/30 flex items-center justify-center text-[9px] text-blue-400 transition-all";
                             circle.innerText = Math.round(dayPct*100) + '%';
                         } else {
-                            circle.className = "w-7 h-7 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-600 text-xs";
+                            circle.className = "w-7 h-7 rounded-full bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-600 text-xs transition-all";
                             circle.innerText = '•';
                         }
                     }
@@ -722,16 +711,26 @@
         }
 
         function handleToggleNotifSystem() {
+            hapticFeedback();
             if (!config.notifEnabled) {
                 Notification.requestPermission().then(p => { if (p === "granted") { config.notifEnabled = true; saveConfigToDisk(); startNotificationEngine(); updateUI(); } });
             } else { config.notifEnabled = false; saveConfigToDisk(); stopNotificationEngine(); updateUI(); }
         }
-        function handleChangeNotifTime(m) { config.notifInterval = m; saveConfigToDisk(); startNotificationEngine(); updateUI(); }
-        function saveConfigToDisk() { localStorage.setItem('biotracker_pro_config_v4', JSON.stringify(config)); }
-        function startNotificationEngine() { stopNotificationEngine(); if (!config.notifEnabled) return; globalNotifTimer = setInterval(() => { if(state[today] && state[today].water < WATER_GOAL) new Notification("Čas na vodu! 🥤", { body: "Napij se ze Stanley Cupu!" }); }, config.notifInterval * 60 * 1000); }
+        function handleChangeNotifTime(m) { hapticFeedback(); config.notifInterval = m; saveConfigToDisk(); startNotificationEngine(); updateUI(); }
+        function saveConfigToDisk() { localStorage.setItem('trackerrr_config_v1', JSON.stringify(config)); }
+        function startNotificationEngine() { 
+            stopNotificationEngine(); 
+            if (!config.notifEnabled) return; 
+            globalNotifTimer = setInterval(() => { 
+                let currentHour = new Date().getHours();
+                if (currentHour >= 22 || currentHour < 7) return; // NOČNÍ KLID (22:00 - 07:00)
+                if(state[today] && state[today].water < WATER_GOAL) new Notification("Čas na vodu! 🥤", { body: "Napij se, ať držíš optimální pitný režim." }); 
+            }, config.notifInterval * 60 * 1000); 
+        }
         function stopNotificationEngine() { if(globalNotifTimer) { clearInterval(globalNotifTimer); globalNotifTimer = null; } }
 
         function saveSyncRoomCode() {
+            hapticFeedback();
             let code = document.getElementById('cloud-sync-room-input').value.trim().toLowerCase().replace(/[^a-z0-8_-]/g, '');
             if(!code) return;
             config.syncRoom = code;
@@ -782,43 +781,44 @@
                 updateUI();
                 return;
             }
-            setSyncLabelStatus("Propojování...", "bg-zinc-900 text-amber-400 border-zinc-800", "refresh-cw", true);
-            let targetUrl = `${DB_URL}_${config.syncRoom}`;
+            setSyncLabelStatus("Spojuji...", "bg-zinc-900 text-amber-400 border-zinc-800", "refresh-cw", true);
+            let targetUrl = `${CLOUD_API_URL}${config.syncRoom}`;
             try {
                 const response = await fetch(targetUrl);
                 if (response.status === 200) {
-                    const cloudData = await response.json();
-                    if (cloudData && Object.keys(cloudData).length > 0) {
-                        let localState = JSON.parse(localStorage.getItem('biotracker_pro_state_v4')) || {};
-                        state = mergeCloudAndLocal(localState, cloudData);
-                        localStorage.setItem('biotracker_pro_state_v4', JSON.stringify(state));
-                        await fetch(targetUrl, { method: 'PUT', body: JSON.stringify(state), headers: {'Content-Type': 'application/json'} });
+                    const cloudBody = await response.json();
+                    if (cloudBody && cloudBody.data) {
+                        let localState = JSON.parse(localStorage.getItem('trackerrr_state_v1')) || {};
+                        state = mergeCloudAndLocal(localState, cloudBody.data);
+                        localStorage.setItem('trackerrr_state_v1', JSON.stringify(state));
                     }
                 }
+                await fetch(targetUrl, { method: 'PUT', body: JSON.stringify({data: state}), headers: {'Content-Type': 'application/json'} });
                 setSyncLabelStatus("Spárováno", "bg-zinc-900 text-emerald-400 border-zinc-800", "cloud-check");
-            } catch (e) { setSyncLabelStatus("Chyba sync", "bg-red-950/40 text-red-400 border-red-900/50", "cloud-off"); }
+            } catch (e) { setSyncLabelStatus("Chyba cloudu", "bg-red-950/40 text-red-400 border-red-900/50", "cloud-off"); }
             finally { document.getElementById('loading-overlay').style.display = 'none'; updateUI(); }
         }
 
         async function triggerSilentCloudUpload() {
             if (!config.syncRoom) return;
             setSyncLabelStatus("Ukládám...", "bg-zinc-900 text-amber-400 border-zinc-800", "refresh-cw", true);
-            let targetUrl = `${DB_URL}_${config.syncRoom}`;
+            let targetUrl = `${CLOUD_API_URL}${config.syncRoom}`;
             try {
                 const response = await fetch(targetUrl);
                 if (response.status === 200) {
-                    const cloudData = await response.json();
-                    if (cloudData && Object.keys(cloudData).length > 0) {
-                        state = mergeCloudAndLocal(state, cloudData);
-                        localStorage.setItem('biotracker_pro_state_v4', JSON.stringify(state));
+                    const cloudBody = await response.json();
+                    if (cloudBody && cloudBody.data) {
+                        state = mergeCloudAndLocal(state, cloudBody.data);
+                        localStorage.setItem('trackerrr_state_v1', JSON.stringify(state));
                     }
                 }
-                await fetch(targetUrl, { method: 'PUT', body: JSON.stringify(state), headers: {'Content-Type': 'application/json'} });
+                await fetch(targetUrl, { method: 'PUT', body: JSON.stringify({data: state}), headers: {'Content-Type': 'application/json'} });
                 setSyncLabelStatus("Spárováno", "bg-zinc-900 text-emerald-400 border-zinc-800", "cloud-check");
             } catch (e) { setSyncLabelStatus("Chyba cloudu", "bg-red-950/40 text-red-400 border-red-900/50", "cloud-off"); }
+            finally { updateUI(); }
         }
 
-        function triggerManualSync() { loadAndMergeDataFromCloudSystem(); }
+        function triggerManualSync() { hapticFeedback(); loadAndMergeDataFromCloudSystem(); }
         function setSyncLabelStatus(text, classes, iconName, spin = false) {
             const ind = document.getElementById('sync-indicator');
             if(ind) {
@@ -832,13 +832,12 @@
             if(confirm('Opravdu resetovat vše?')) {
                 localStorage.clear();
                 if(config.syncRoom) {
-                    fetch(`${DB_URL}_${config.syncRoom}`, { method: 'PUT', body: JSON.stringify({}), headers: {'Content-Type':'application/json'} }).then(() => location.reload());
+                    fetch(`${CLOUD_API_URL}${config.syncRoom}`, { method: 'PUT', body: JSON.stringify({data: {}}), headers: {'Content-Type':'application/json'} }).then(() => location.reload());
                 } else { location.reload(); }
             }
         }
 
         triggerSelectFoodCategory('Oběd');
-        triggerStarSelect(5);
         loadAndMergeDataFromCloudSystem();
         startNotificationEngine();
     </script>
