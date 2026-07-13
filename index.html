@@ -13,40 +13,39 @@
         .glass-card { background: rgba(20, 20, 23, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(63, 63, 70, 0.35); }
         .glow-active { box-shadow: 0 0 45px -5px rgba(56, 189, 248, 0.2); }
         
-        /* Glassmorphism 3D Orb z videa */
-        .orb-container {
-            position: relative; width: 180px; height: 180px; border-radius: 50%;
-            background: radial-gradient(circle at 50% 100%, #151520, #09090b);
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: inset 0 -15px 30px rgba(29, 78, 216, 0.3), inset 0 15px 30px rgba(0,0,0,0.9), 0 0 30px rgba(56, 189, 248, 0.15);
-            overflow: hidden; display: flex; align-items: flex-end; justify-content: center;
+        /* Glassmorph Organický Blob - Idle Animace */
+        .orb-blob {
+            position: relative; width: 170px; height: 170px;
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: inset 12px 20px 30px rgba(255,255,255,0.15), inset -12px -20px 30px rgba(0,0,0,0.85), 0 0 40px -10px rgba(56, 189, 248, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px); 
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            animation: morph-blob 8s ease-in-out infinite; 
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        /* Základna tekutiny */
-        .orb-fluid {
-            width: 100%; transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; z-index: 10;
-            background: linear-gradient(180deg, rgba(29, 78, 216, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-            pointer-events: none;
+        
+        @keyframes morph-blob {
+            0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+            34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+            67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
         }
-        /* Rotující animovaná hladina (Vlna 1 a 2) */
-        .orb-fluid::before {
-            content: ''; position: absolute; left: -50%; top: -45px; width: 200%; height: 90px;
-            border-radius: 41%; background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.95), rgba(168, 85, 247, 0.5));
-            animation: spin-liquid 6s infinite linear; filter: blur(5px); transform-origin: 50% 50%;
-        }
-        .orb-fluid::after {
-            content: ''; position: absolute; left: -40%; top: -40px; width: 180%; height: 80px;
-            border-radius: 44%; background: radial-gradient(circle at 50% 50%, rgba(29, 78, 216, 0.9), rgba(56, 189, 248, 0.4));
-            animation: spin-liquid 9s infinite linear reverse; filter: blur(4px); transform-origin: 50% 50%;
-        }
-        @keyframes spin-liquid { 100% { transform: rotate(360deg); } }
 
+        /* Modré jádro plnící se od středu */
+        .orb-core {
+            position: absolute; top: 50%; left: 50%; width: 170px; height: 170px;
+            background: radial-gradient(circle at center, #38bdf8 0%, #1d4ed8 70%, transparent 100%);
+            border-radius: 50%; transform: translate(-50%, -50%) scale(0);
+            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: blur(12px); z-index: 1; opacity: 0.85; pointer-events: none;
+        }
+
+        .orb-content { position: relative; z-index: 10; pointer-events: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="pb-28">
 
-    <!-- VYSKAKOVACÍ TOAST NOTIFIKACE (IOS STYLE) -->
     <div id="toast-modal" class="fixed top-6 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-800 shadow-2xl rounded-2xl p-4 w-11/12 max-w-sm z-[100] transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
         <div class="flex items-start space-x-3">
             <div id="toast-icon" class="pt-0.5"></div>
@@ -57,7 +56,6 @@
         </div>
     </div>
 
-    <!-- NAČÍTACÍ OBRAZOVKA -->
     <div id="loading-overlay" class="fixed inset-0 bg-[#09090b] z-50 flex flex-col items-center justify-center transition-opacity duration-300 max-w-md mx-auto">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
         <p class="text-xs font-semibold text-zinc-400 tracking-wider">Start Trackerrr...</p>
@@ -81,7 +79,7 @@
 
         <div id="past-day-alert" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 mb-4 text-xs flex justify-between items-center text-amber-400">
             <span>Zobrazuji historii ze zvoleného dne.</span>
-            <button onclick="jumpToToday()" class="bg-amber-500 text-black px-2 py-1 rounded font-bold text-[10px] active:scale-95 transition-transform">Zpět na dnešek</button>
+            <button onclick="jumpToToday()" class="bg-amber-500 text-black px-2 py-0.5 rounded font-bold text-[10px] active:scale-95 transition-transform">Zpět na dnešek</button>
         </div>
 
         <!-- ================= OBRAZOVKA 1: DASHBOARD ================= -->
@@ -104,11 +102,11 @@
                 </div>
             </div>
 
-            <!-- GLASSMORPHISM ORB ANIMACE VODY -->
+            <!-- GLASSMORPH ORGANIC BLOB ANIMACE -->
             <div class="flex flex-col items-center justify-center py-3">
-                <div class="orb-container glow-active cursor-pointer active:scale-95 transition-transform" onclick="switchTab('water')">
-                    <div id="liquid-wave-fluid" class="orb-fluid" style="height: 0%;"></div>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center z-20 pointer-events-none">
+                <div class="orb-blob cursor-pointer active:scale-95" onclick="switchTab('water')">
+                    <div id="liquid-wave-fluid" class="orb-core" style="transform: translate(-50%, -50%) scale(0);"></div>
+                    <div class="orb-content flex flex-col items-center justify-center text-center">
                         <span id="circle-pct-value" class="text-5xl font-black text-white tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">0%</span>
                         <span class="text-[10px] text-zinc-300 font-bold tracking-widest uppercase opacity-90 mt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Hydratace</span>
                     </div>
@@ -147,7 +145,7 @@
                             <div id="dash-food-s3" class="h-1.5 flex-1 bg-zinc-800 rounded-sm"></div>
                         </div>
                     </div>
-                    <p id="dash-text-food" class="text-xs font-bold text-zinc-300">0 chody</p>
+                    <p id="dash-text-food" class="text-xs font-bold text-zinc-300">0 / 3 chody</p>
                 </div>
             </div>
         </div>
@@ -226,11 +224,12 @@
             <div class="glass-card rounded-3xl p-5 space-y-4">
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider">Zaznamenat stravu</h2>
                 
+                <!-- Kategorie včetně SVAČINY -->
                 <div class="grid grid-cols-4 gap-2" id="food-category-toggle-box">
                     <button onclick="triggerSelectFoodCategory('Snídaně')" id="foodcat-Snídaně" class="py-2.5 rounded-lg text-[10px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Snídaně</button>
+                    <button onclick="triggerSelectFoodCategory('Svačina')" id="foodcat-Svačina" class="py-2.5 rounded-lg text-[10px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Svačina</button>
                     <button onclick="triggerSelectFoodCategory('Oběd')" id="foodcat-Oběd" class="py-2.5 rounded-lg text-[10px] font-bold bg-amber-500/10 border border-amber-500/50 text-amber-400 active:scale-95 transition-transform">Oběd</button>
                     <button onclick="triggerSelectFoodCategory('Večeře')" id="foodcat-Večeře" class="py-2.5 rounded-lg text-[10px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Večeře</button>
-                    <button onclick="triggerSelectFoodCategory('Svačina')" id="foodcat-Svačina" class="py-2.5 rounded-lg text-[10px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Svačina</button>
                 </div>
 
                 <div class="grid grid-cols-4 gap-2 text-[10px] text-zinc-400">
@@ -241,7 +240,7 @@
                 </div>
 
                 <div class="flex space-x-2">
-                    <div class="flex items-center justify-center bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-lg" id="food-emoji-preview">🍳</div>
+                    <div class="flex items-center justify-center bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 text-xl" id="food-emoji-preview">🍳</div>
                     <input type="text" id="food-place-input" placeholder="Podnik" class="w-1/3 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-amber-500" value="Domácí">
                     <input type="text" id="food-detail-input" placeholder="Co jsi měl? (BigMac Menu...)" class="w-2/3 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
@@ -305,9 +304,16 @@
                     <div class="flex justify-between items-center bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800">
                         <div>
                             <p class="text-xs font-bold text-zinc-200">Hlavní spínač upomínek</p>
-                            <p class="text-[9px] text-zinc-500 font-medium mt-1">Noční klid (22:00-07:00) je zabudován</p>
+                            <p class="text-[9px] text-zinc-500 font-medium mt-1">Noční klid (22:00-07:00) je automatický</p>
                         </div>
                         <button onclick="handleToggleNotifSystem()" id="btn-toggle-notifs" class="px-3 py-1.5 bg-zinc-800 text-zinc-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform">Vypnuto</button>
+                    </div>
+                    <div id="notif-interval-wrapper" class="space-y-2 opacity-40 pointer-events-none transition-opacity">
+                        <div class="grid grid-cols-3 gap-2 text-[10px] font-bold text-center">
+                            <button onclick="handleChangeNotifTime(60)" id="int-btn-60" class="bg-zinc-900 border border-zinc-800 py-2 rounded-lg active:scale-95 transition-transform">1 Hodina</button>
+                            <button onclick="handleChangeNotifTime(120)" id="int-btn-120" class="bg-zinc-900 border border-zinc-800 py-2 rounded-lg active:scale-95 transition-transform">2 Hodiny</button>
+                            <button onclick="handleChangeNotifTime(180)" id="int-btn-180" class="bg-zinc-900 border border-zinc-800 py-2 rounded-lg active:scale-95 transition-transform">3 Hodiny</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -329,7 +335,6 @@
     </div>
 
     <script>
-        // BEZPEČNÁ DATABÁZE ZE STUDIA DEPO
         const GOOGLE_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzqRrJO7skZKFusk_YjWmwHSaSs2Nf_MO0dBqZBr4_Qpqt26HnZIiWBk4xVdsfLYKmu/exec";
         const WATER_GOAL = 2100;
         
@@ -351,7 +356,7 @@
 
         let state = JSON.parse(localStorage.getItem('trackerrr_state_v6')) || { lastUpdated: Date.now() };
         let config = JSON.parse(localStorage.getItem('trackerrr_config_v6')) || {
-            notifEnabled: false, statsPeriod: 'week', syncRoom: '', customSuplementsList: [], initialized: false
+            notifEnabled: false, notifInterval: 120, statsPeriod: 'week', syncRoom: '', customSuplementsList: [], initialized: false
         };
 
         if (!config.initialized) {
@@ -370,7 +375,6 @@
         let globalNotifTimer = null;
         let debounceTimer = null;
 
-        // Vlastní Toast Modal fuknce
         function showToast(title, msg, type = 'info') {
             const toast = document.getElementById('toast-modal');
             document.getElementById('toast-title').innerText = title;
@@ -383,12 +387,12 @@
             document.getElementById('toast-icon').innerHTML = iconHtml;
             try { lucide.createIcons(); } catch(e){}
             
-            toast.classList.remove('-translate-y-24', 'opacity-0');
+            toast.classList.remove('-translate-y-24', 'opacity-0', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
             
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('-translate-y-24', 'opacity-0');
+                toast.classList.add('-translate-y-24', 'opacity-0', 'pointer-events-none');
             }, 3500);
         }
 
@@ -544,7 +548,10 @@
                 
                 document.getElementById('circle-pct-value').innerText = pct + '%';
                 document.getElementById('circle-volume-label').innerText = `${data.water} z ${WATER_GOAL} ml`;
-                document.getElementById('liquid-wave-fluid').style.height = pct + '%';
+                
+                // Měřítko pro animaci Modulace: od scale(0) do scale(1.4), aby úplně vykrylo kouli při 100%
+                let scaleValue = (pct / 100) * 1.5;
+                document.getElementById('liquid-wave-fluid').style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
 
                 if(document.getElementById('dash-bar-water')) {
                     document.getElementById('dash-bar-water').style.width = pct + '%';
@@ -655,7 +662,9 @@
                 });
 
                 let streak = weekKeys.filter(k => state[k] && state[k].water >= WATER_GOAL).length;
-                if(document.getElementById('streak-count')) document.getElementById('streak-count').innerText = streak;
+                if(document.getElementById('streak-count')) {
+                    document.getElementById('streak-count').innerText = streak;
+                }
 
                 let box = document.getElementById('favorite-meals-box-list');
                 if(box) {
@@ -694,11 +703,16 @@
                     bCont.innerHTML = bHtml; document.getElementById('analytics-labels-wrapper').innerHTML = lHtml;
                 }
 
-                const btn = document.getElementById('btn-toggle-notifs'); 
+                const btn = document.getElementById('btn-toggle-notifs'); const notifbox = document.getElementById('notif-interval-wrapper');
+                document.querySelectorAll('[id^="int-btn-"]').forEach(b => b.className = "bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg text-zinc-500 active:scale-95 transition-transform");
                 if (config.notifEnabled) {
                     if(btn) { btn.innerText = "Aktivní"; btn.className = "px-3 py-1.5 bg-emerald-500/20 text-emerald-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform"; }
+                    if(notifbox) notifbox.classList.remove('opacity-40', 'pointer-events-none');
+                    let act = document.getElementById('int-btn-' + config.notifInterval);
+                    if(act) act.className = "bg-blue-500/20 border border-blue-500/50 py-1.5 rounded-lg text-blue-400 active:scale-95 transition-transform";
                 } else {
                     if(btn) { btn.innerText = "Vypnuto"; btn.className = "px-3 py-1.5 bg-zinc-800 text-zinc-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform"; }
+                    if(notifbox) notifbox.classList.add('opacity-40', 'pointer-events-none');
                 }
                 if(document.getElementById('cloud-sync-room-input')) document.getElementById('cloud-sync-room-input').value = config.syncRoom || '';
                 
@@ -724,9 +738,9 @@
                 showToast('Notifikace vypnuty', 'Všechny upomínky jsou nyní pozastaveny.', 'info');
             }
         }
+        function handleChangeNotifTime(m) { hapticFeedback(); config.notifInterval = m; saveConfigToDisk(); startNotificationEngine(); updateUI(); }
         function saveConfigToDisk() { localStorage.setItem('trackerrr_config_v6', JSON.stringify(config)); }
         
-        // CHYTRÝ ENGINE BĚŽÍ KAŽDOU MINUTU
         function startNotificationEngine() { 
             stopNotificationEngine(); 
             if (!config.notifEnabled) return; 
@@ -734,21 +748,19 @@
                 let now = new Date();
                 let hr = now.getHours();
                 
-                if (hr >= 22 || hr < 7) return; // NOČNÍ KLID (22:00 - 07:00)
+                if (hr >= 22 || hr < 7) return; 
                 
                 let todayData = state[today];
                 if(!todayData) return;
 
-                // Voda: upomínka každé 2h pokud není splněno
                 if (todayData.water < WATER_GOAL) {
                     let lastNotifFired = parseInt(localStorage.getItem('last_notif_water') || '0');
-                    if (Date.now() - lastNotifFired > 120 * 60 * 1000) { // 2 hodiny
+                    if (Date.now() - lastNotifFired > 120 * 60 * 1000) {
                         new Notification("Čas na vodu! 💧", { body: "Napij se ze Stanley Cupu, ať držíš rytmus." });
                         localStorage.setItem('last_notif_water', Date.now().toString());
                     }
                 }
 
-                // Suplementy
                 config.customSuplementsList.forEach(v => {
                     let schedArr = getVitSchedule(v.frequency);
                     let takenCount = (todayData.vitamins[v.id] || []).length;
@@ -761,7 +773,7 @@
 
                     if (takenCount < expectedCount) {
                         let lastVitFired = parseInt(localStorage.getItem('last_notif_' + v.id) || '0');
-                        if (Date.now() - lastVitFired > 60 * 60 * 1000) { // Hodina
+                        if (Date.now() - lastVitFired > 60 * 60 * 1000) {
                             new Notification(`Čas na ${v.name}! ⚡`, { body: `Máš zpoždění s dávkou. Otevři Trackerrr.` });
                             localStorage.setItem('last_notif_' + v.id, Date.now().toString());
                         }
@@ -797,7 +809,6 @@
                         let localTime = state.lastUpdated || 0;
                         let cloudTime = cloudData.lastUpdated || 0;
                         
-                        // LWW - Poslední uložená verze vyhrává
                         if (cloudTime > localTime) {
                             state = cloudData;
                             localStorage.setItem('trackerrr_state_v6', JSON.stringify(state));
