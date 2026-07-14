@@ -22,7 +22,7 @@
             100% { opacity: 0; transform: scale(3.5); filter: blur(15px); pointer-events: none; }
         }
 
-        /* 2. Prémiové přechody mezi záložkami (Delší a plynulejší morphing) */
+        /* 2. Prémiové přechody mezi záložkami */
         .animate-tab-enter { animation: tabFadeInUp 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         @keyframes tabFadeInUp {
             0% { opacity: 0; transform: translateY(15px) scale(0.98); filter: blur(4px); }
@@ -68,59 +68,36 @@
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* ================= NOVÝ GLASS SPODNÍ TAB BAR ================= */
-        .glass-tab-bar {
+        /* ================= LIQUID GLASS UI ELEMENTS ================= */
+        .glass-tab-bar, .glass-panel {
             background: rgba(15, 15, 18, 0.55);
             backdrop-filter: blur(28px);
             -webkit-backdrop-filter: blur(28px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 2.5rem; /* Pill shape */
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
+        
+        .glass-tab-bar { border-radius: 2.5rem; }
+        .glass-panel { border-radius: 1.5rem; }
 
+        /* Nav Item Lamp Effect */
         .nav-item {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 48px;
-            color: #71717a; /* Inactive barva */
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative; display: flex; justify-content: center; align-items: center;
+            height: 48px; color: #71717a; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
-        /* Lamp Effect: Světelný bod nahoře */
         .nav-item::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: 50%;
-            transform: translateX(-50%) scaleX(0);
-            width: 20px;
-            height: 3px;
-            background: #ffffff;
-            border-radius: 4px;
-            opacity: 0;
+            content: ''; position: absolute; top: -6px; left: 50%;
+            transform: translateX(-50%) scaleX(0); width: 20px; height: 3px;
+            background: #ffffff; border-radius: 4px; opacity: 0;
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
-            box-shadow: 0 0 12px 2px rgba(255, 255, 255, 0.9);
-            z-index: 10;
+            box-shadow: 0 0 12px 2px rgba(255, 255, 255, 0.9); z-index: 10;
         }
-
-        /* Lamp Effect: Kužel světla */
         .nav-item::after {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            pointer-events: none;
+            content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+            width: 45px; height: 45px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+            opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
             clip-path: polygon(25% 0, 75% 0, 100% 100%, 0% 100%);
         }
-
         .nav-item.active { color: #ffffff; transform: translateY(-3px); }
         .nav-item.active::before { opacity: 1; transform: translateX(-50%) scaleX(1); }
         .nav-item.active::after { opacity: 1; }
@@ -128,10 +105,10 @@
 </head>
 <body class="pb-32">
 
-    <!-- SPLASH SCREEN (S vlastním logem) -->
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="fixed inset-0 z-[200] flex items-center justify-center">
         <div id="splash-wrapper" class="flex items-center justify-center">
-            <img src="tracker logo_00000.png" alt="Trackerrr Logo" class="w-56 h-auto drop-shadow-2xl">
+            <img src="https://i.ibb.co/3mhprjwH/tracker-logo-00000.png" alt="Trackerrr Logo" class="w-56 h-auto drop-shadow-2xl">
         </div>
     </div>
 
@@ -179,20 +156,14 @@
         <!-- ================= OBRAZOVKA 1: DASHBOARD ================= -->
         <div id="view-dashboard" class="space-y-6 tab-view animate-tab-enter">
             
-            <!-- KALENDÁŘ -->
-            <div class="glass-card rounded-2xl p-4 flex flex-col items-center">
-                <div class="w-full flex justify-between items-center mb-3 px-1 text-xs text-zinc-400 font-medium">
-                    <span class="flex items-center gap-1.5"><i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> <strong class="text-white text-sm" id="streak-count">0</strong> DNÍ SÉRIE</span>
-                    <span id="current-date-str" class="text-[11px] text-zinc-500 font-semibold uppercase"></span>
+            <!-- KALENDÁŘ (Předěláno na Liquid Glass) -->
+            <div class="glass-panel p-5 flex flex-col items-center">
+                <div class="w-full flex justify-between items-center mb-4 px-1 text-xs text-zinc-400 font-medium">
+                    <span class="flex items-center gap-1.5"><i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> <strong class="text-white text-sm drop-shadow" id="streak-count">0</strong> DNÍ SÉRIE</span>
+                    <span id="current-date-str" class="text-[11px] text-zinc-400 font-semibold uppercase"></span>
                 </div>
-                <div class="grid grid-cols-7 gap-1.5 w-full text-center" id="calendar-days-row">
-                    <div onclick="selectActiveDay(0)" id="wd-0" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">PO</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div onclick="selectActiveDay(1)" id="wd-1" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ÚT</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div onclick="selectActiveDay(2)" id="wd-2" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ST</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div onclick="selectActiveDay(3)" id="wd-3" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ČT</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div onclick="selectActiveDay(4)" id="wd-4" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">PÁ</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div onclick="selectActiveDay(5)" id="wd-5" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">SO</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div onclick="selectActiveDay(6)" id="wd-6" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">NE</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
+                <div class="grid grid-cols-7 gap-1 w-full text-center" id="calendar-days-row">
+                    <!-- Javascript generuje dny sem -->
                 </div>
             </div>
 
@@ -437,7 +408,7 @@
 
     </div>
 
-    <!-- SPODNÍ NAV PANEL (Floating Liquid Glass & Lamp Effect) -->
+    <!-- SPODNÍ NAV PANEL -->
     <div class="fixed bottom-6 left-5 right-5 max-w-sm mx-auto glass-tab-bar flex justify-around items-center px-2 py-1.5 z-50">
         <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active w-14 cursor-pointer">
             <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
@@ -514,7 +485,7 @@
         let debounceTimer = null;
         let previousWaterPct = 0;
 
-        // Splash Screen (S aplikací animace na wrapper)
+        // Splash Screen Update (načtení externího loga)
         setTimeout(() => {
             const splashWrapper = document.getElementById('splash-wrapper');
             if (splashWrapper) splashWrapper.classList.add('splash-out');
@@ -557,7 +528,6 @@
         setInterval(updateTimePill, 60000);
         updateTimePill();
 
-        // Zpomalená a zřetelnější Slot Machine Animace
         function animateCounter(elem, start, end, duration) {
             let startTime = null;
             elem.classList.add('slot-rolling');
@@ -570,7 +540,6 @@
                 
                 elem.innerText = current + '%';
                 
-                // Zjemněný shake efekt
                 let yOffset = (current % 2 === 0) ? -1 : 1; 
                 if(progress === 1) yOffset = 0;
                 elem.style.transform = `translateY(${yOffset}px)`;
@@ -609,7 +578,7 @@
             document.getElementById('past-day-alert').classList.toggle('hidden', activeViewDate === today);
             
             let data = state[activeViewDate];
-            previousWaterPct = Math.min(Math.round(((parseInt(data.water) || 0) / WATER_GOAL) * 100), 100);
+            previousWaterPct = 0; // Donutí slot machine zopakovat animaci pro vybraný den
             updateUI(true);
         }
 
@@ -618,7 +587,7 @@
             document.getElementById('past-day-alert').classList.add('hidden');
             
             let data = state[activeViewDate];
-            previousWaterPct = Math.min(Math.round(((parseInt(data.water) || 0) / WATER_GOAL) * 100), 100);
+            previousWaterPct = 0;
             updateUI(true);
         }
 
@@ -728,24 +697,25 @@
         function switchTab(tabId) {
             hapticFeedback();
             
-            // 1. Zkryjeme všechny obsahy a zrušíme starou animaci
+            // Restart animace pro Slot Machine po návratu na Přehled
+            if(tabId === 'dashboard') {
+                previousWaterPct = 0; 
+            }
+
             document.querySelectorAll('.tab-view').forEach(v => {
                 v.classList.add('hidden');
                 v.classList.remove('animate-tab-enter');
             });
             
-            // 2. Resetujeme stav z ikon ve spodním nav baru
             document.querySelectorAll('.nav-item').forEach(btn => {
                 btn.classList.remove('active');
             });
             
-            // 3. Aktivujeme správný obsah a spustíme animaci přes reflow
             const activeView = document.getElementById('view-' + tabId);
             activeView.classList.remove('hidden');
             void activeView.offsetWidth; 
             activeView.classList.add('animate-tab-enter');
             
-            // 4. Zapneme efekt lampičky pro vybranou ikonu
             document.getElementById('nav-' + tabId).classList.add('active');
             
             const titles = { 'dashboard': 'Přehled', 'water': 'Hydratace', 'vitamins': 'Suplementace', 'food': 'Stravování', 'settings': 'Analýza' };
@@ -771,7 +741,6 @@
                 let pct = Math.min(Math.round(((parseInt(data.water) || 0) / WATER_GOAL) * 100), 100);
                 if (isNaN(pct)) pct = 0;
                 
-                // SLOT MACHINE ANIMACE (Zpomalená pro lepší čitelnost)
                 let pctElem = document.getElementById('circle-pct-value');
                 if (pct !== previousWaterPct && !skipAnimation) {
                     animateCounter(pctElem, previousWaterPct, pct, 2800); 
@@ -869,36 +838,51 @@
                     } else { foodLogBox.innerHTML = `<p class="text-center py-4 text-zinc-600 text-xs">Bez záznamu jídla.</p>`; }
                 }
 
+                // Generování dnů do kalendáře s novým glassmorphism vzhledem
+                let calHtml = '';
+                const dayLabels = ['PO', 'ÚT', 'ST', 'ČT', 'PÁ', 'SO', 'NE'];
+                
                 weekKeys.forEach((key, i) => {
-                    let dayData = state[key]; let dayWater = dayData ? parseInt(dayData.water) : 0; let dayPct = Math.min((dayWater / WATER_GOAL), 1);
+                    let dayData = state[key]; 
+                    let dayWater = dayData ? parseInt(dayData.water) : 0; 
+                    let dayPct = Math.min((dayWater / WATER_GOAL), 1);
                     if(isNaN(dayPct)) dayPct = 0;
-                    let wrapper = document.getElementById(`wd-${i}`);
-                    if(wrapper) {
-                        let circle = wrapper.querySelector('div');
-                        let is100 = dayPct >= 1;
-                        let textSize = is100 ? 'text-[7px]' : 'text-[9px]';
-                        
-                        if (is100) {
-                            circle.className = `w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-sky-400 border border-sky-300 flex items-center justify-center ${textSize} tracking-tighter text-white font-black shadow-[0_0_12px_rgba(56,189,248,0.8)] transition-all`;
-                            circle.innerText = '100%';
-                        } else if (dayWater > 0) {
-                            circle.className = `w-8 h-8 rounded-full bg-white/10 border border-blue-500/30 flex items-center justify-center ${textSize} tracking-tighter text-blue-300 transition-all`;
-                            circle.innerText = Math.round(dayPct*100) + '%';
-                        } else {
-                            circle.className = `w-8 h-8 rounded-full bg-black/40 border border-white/10 flex items-center justify-center ${textSize} text-zinc-600 transition-all`;
-                            circle.innerText = '•';
-                        }
+                    
+                    let is100 = dayPct >= 1;
+                    let textSize = is100 ? 'text-[7px]' : 'text-[9px]';
+                    let glassBase = "w-9 h-9 rounded-full backdrop-blur-xl flex items-center justify-center font-bold shadow-[0_4px_10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.15)] transition-all";
+                    let circleClass = "";
+                    let circleText = "";
 
-                        if(key === activeViewDate) {
-                            circle.classList.add('ring-2', 'ring-white/40', 'ring-offset-1', 'ring-offset-[#09090b]');
-                            if(dayPct === 0) {
-                                circle.classList.remove('text-zinc-600');
-                                circle.classList.add('text-blue-400');
-                                circle.innerText = '0%';
-                            }
+                    if (is100) {
+                        circleClass = `${glassBase} bg-gradient-to-tr from-blue-600/80 to-sky-400/80 border border-sky-300/50 ${textSize} tracking-tighter text-white font-black shadow-[0_0_15px_rgba(56,189,248,0.5),inset_0_2px_4px_rgba(255,255,255,0.3)]`;
+                        circleText = '100%';
+                    } else if (dayWater > 0) {
+                        circleClass = `${glassBase} bg-white/10 border border-blue-400/30 ${textSize} tracking-tighter text-blue-300 shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)]`;
+                        circleText = Math.round(dayPct*100) + '%';
+                    } else {
+                        circleClass = `${glassBase} bg-black/40 border border-white/5 ${textSize} text-zinc-500`;
+                        circleText = '•';
+                    }
+
+                    if(key === activeViewDate) {
+                        circleClass += " ring-2 ring-white/30 ring-offset-2 ring-offset-[#09090b] transform scale-110";
+                        if(dayPct === 0) {
+                            circleClass = circleClass.replace('text-zinc-500', 'text-blue-400');
+                            circleText = '0%';
                         }
                     }
+
+                    calHtml += `
+                        <div onclick="selectActiveDay(${i})" class="flex flex-col items-center cursor-pointer p-1 rounded-xl hover:bg-white/5 transition-colors">
+                            <span class="text-[9px] text-zinc-400 font-bold mb-2">${dayLabels[i]}</span>
+                            <div class="${circleClass}">${circleText}</div>
+                        </div>
+                    `;
                 });
+                
+                let calContainer = document.getElementById('calendar-days-row');
+                if(calContainer) calContainer.innerHTML = calHtml;
 
                 let streak = weekKeys.filter(k => state[k] && state[k].water >= WATER_GOAL).length;
                 if(document.getElementById('streak-count')) {
