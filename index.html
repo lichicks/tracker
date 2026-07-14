@@ -41,13 +41,23 @@
         }
 
         .orb-content { position: relative; z-index: 10; pointer-events: none; }
+        
+        /* Custom styl pro slider */
+        .custom-range { -webkit-appearance: none; appearance: none; outline: none; }
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #ffffff; border: 2px solid #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+            cursor: pointer;
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="pb-32">
+<body class="pb-28">
 
-    <!-- TOAST NOTIFIKACE (Nyní dole nad lištou) -->
-    <div id="toast-modal" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-800 shadow-2xl rounded-2xl p-4 w-11/12 max-w-sm z-[100] transform translate-y-10 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toast-modal" class="fixed top-6 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-800 shadow-2xl rounded-2xl p-4 w-11/12 max-w-sm z-[100] transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
         <div class="flex items-start space-x-3">
             <div id="toast-icon" class="pt-0.5"></div>
             <div>
@@ -57,7 +67,6 @@
         </div>
     </div>
 
-    <!-- NAČÍTACÍ OBRAZOVKA -->
     <div id="loading-overlay" class="fixed inset-0 bg-[#09090b] z-50 flex flex-col items-center justify-center transition-opacity duration-300 max-w-md mx-auto">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
         <p class="text-xs font-semibold text-zinc-400 tracking-wider">Start Trackerrr...</p>
@@ -68,14 +77,23 @@
     <div class="max-w-md mx-auto px-4 pt-6 relative z-10">
         
         <!-- TOP LIŠTA -->
-        <div class="flex justify-between items-center mb-5 px-1">
-            <div>
-                <p class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Aplikace</p>
-                <h1 id="page-title" class="text-xl font-black text-white tracking-tight">Trackerrr</h1>
+        <div class="flex justify-between items-center mb-5 px-1 relative">
+            <div class="w-1/3">
+                <h1 id="page-title" class="text-xl font-black text-white tracking-tight text-shadow">Trackerrr</h1>
             </div>
-            <div id="sync-indicator" onclick="triggerManualSync()" class="text-[11px] bg-zinc-900 text-zinc-400 px-3 py-1.5 rounded-full flex items-center space-x-1.5 font-bold border border-zinc-800 cursor-pointer transition-all active:scale-95">
-                <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
-                <span id="sync-text">Lokální režim</span>
+            
+            <!-- Battery Pill (Ukazatel ubíhajícího dne) -->
+            <div class="w-1/3 flex justify-center">
+                <div class="w-14 h-2.5 rounded-full bg-zinc-950 border border-white/10 overflow-hidden relative shadow-inner flex items-center">
+                    <div id="day-progress-pill" class="h-full bg-gradient-to-r from-blue-600 to-sky-400 opacity-90 transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Zmenšený Cloud Sync Ukazatel -->
+            <div class="w-1/3 flex justify-end">
+                <div id="sync-indicator" onclick="triggerManualSync()" class="p-2.5 bg-zinc-900 text-zinc-500 rounded-full border border-zinc-800 cursor-pointer transition-all active:scale-90 shadow-sm">
+                    <i data-lucide="cloud" class="w-4 h-4"></i>
+                </div>
             </div>
         </div>
 
@@ -87,25 +105,24 @@
         <!-- ================= OBRAZOVKA 1: DASHBOARD ================= -->
         <div id="view-dashboard" class="space-y-6 tab-view">
             
-            <!-- KLIKATELNÝ KALENDÁŘ S NOVÝM 100% DESIGNEM -->
             <div class="glass-card rounded-2xl p-4 flex flex-col items-center">
                 <div class="w-full flex justify-between items-center mb-3 px-1 text-xs text-zinc-400 font-medium">
                     <span class="flex items-center gap-1.5"><i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> <strong class="text-white text-sm" id="streak-count">0</strong> DNÍ SÉRIE</span>
                     <span id="current-date-str" class="text-[11px] text-zinc-500 font-semibold uppercase"></span>
                 </div>
                 <div class="grid grid-cols-7 gap-1.5 w-full text-center" id="calendar-days-row">
-                    <!-- Dny z JS -->
-                    <div id="wd-0" onclick="selectActiveDay(0)" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">PO</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div id="wd-1" onclick="selectActiveDay(1)" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ÚT</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div id="wd-2" onclick="selectActiveDay(2)" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ST</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div id="wd-3" onclick="selectActiveDay(3)" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ČT</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div id="wd-4" onclick="selectActiveDay(4)" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">PÁ</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div id="wd-5" onclick="selectActiveDay(5)" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">SO</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
-                    <div id="wd-6" onclick="selectActiveDay(6)" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">NE</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
+                    <!-- Dny -->
+                    <div onclick="selectActiveDay(0)" id="wd-0" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">PO</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
+                    <div onclick="selectActiveDay(1)" id="wd-1" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ÚT</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
+                    <div onclick="selectActiveDay(2)" id="wd-2" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ST</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
+                    <div onclick="selectActiveDay(3)" id="wd-3" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">ČT</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
+                    <div onclick="selectActiveDay(4)" id="wd-4" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">PÁ</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
+                    <div onclick="selectActiveDay(5)" id="wd-5" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">SO</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
+                    <div onclick="selectActiveDay(6)" id="wd-6" class="flex flex-col items-center cursor-pointer p-1 rounded-lg hover:bg-zinc-800/30"><span class="text-[9px] text-zinc-500 font-bold mb-1">NE</span><div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-800 bg-zinc-900"></div></div>
                 </div>
             </div>
 
-            <!-- ANIMACE VODY -->
+            <!-- VODA ANIMACE -->
             <div class="flex flex-col items-center justify-center py-4">
                 <div class="orb-blob cursor-pointer active:scale-95" onclick="switchTab('water')">
                     <div id="liquid-wave-fluid" class="orb-core"></div>
@@ -166,30 +183,42 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-3 mb-6">
-                    <button onclick="handleLogWater(900, 'Stanley Cup')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5 flex flex-col items-center justify-center active:scale-90 transition-transform shadow-sm">
-                        <svg class="w-6 h-6 text-blue-400 mb-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1" /><path d="M6 6h10v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" /><line x1="11" y1="2" x2="11" y2="6" /></svg>
-                        <span class="text-[10px] font-bold text-zinc-200">Stanley Cup</span>
-                        <span class="text-[9px] text-zinc-500 mt-0.5">900 ml</span>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="handleLogWater(900, 'Stanley Cup')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center active:scale-90 transition-transform shadow-sm">
+                        <svg class="w-6 h-6 text-blue-400 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1" /><path d="M6 6h10v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" /><line x1="11" y1="2" x2="11" y2="6" /></svg>
+                        <span class="text-[11px] font-bold text-zinc-200">Stanley Cup</span>
+                        <span class="text-[10px] text-zinc-500 mt-0.5">900 ml</span>
                     </button>
-                    <!-- Monster Ikona -->
-                    <button onclick="handleLogWater(500, 'Monster Energy')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5 flex flex-col items-center justify-center active:scale-90 transition-transform shadow-sm">
-                        <svg class="w-6 h-6 text-emerald-500 mb-1.5 drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 2h12v20H6z" />
-                            <path d="M6 6h12" />
-                            <path d="M14 10l-4 4h4l-4 4" />
-                        </svg>
-                        <span class="text-[10px] font-bold text-zinc-200">Monster</span>
-                        <span class="text-[9px] text-zinc-500 mt-0.5">500 ml</span>
+                    <button onclick="handleLogWater(500, 'Monster Energy')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center active:scale-90 transition-transform shadow-sm">
+                        <svg class="w-6 h-6 text-emerald-500 mb-2 drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20H6z" /><path d="M6 6h12" /><path d="M14 10l-4 4h4l-4 4" /></svg>
+                        <span class="text-[11px] font-bold text-zinc-200">Monster</span>
+                        <span class="text-[10px] text-zinc-500 mt-0.5">500 ml</span>
                     </button>
-                    <button onclick="handleLogWater(250, 'Sklenička')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5 flex flex-col items-center justify-center active:scale-90 transition-transform shadow-sm">
-                        <i data-lucide="glass-water" class="w-6 h-6 text-indigo-400 mb-1.5"></i>
-                        <span class="text-[10px] font-bold text-zinc-200">Sklenička</span>
-                        <span class="text-[9px] text-zinc-500 mt-0.5">250 ml</span>
+                    <button onclick="handleLogWater(250, 'Sklenička')" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center active:scale-90 transition-transform shadow-sm">
+                        <i data-lucide="glass-water" class="w-6 h-6 text-indigo-400 mb-2"></i>
+                        <span class="text-[11px] font-bold text-zinc-200">Sklenička</span>
+                        <span class="text-[10px] text-zinc-500 mt-0.5">250 ml</span>
+                    </button>
+                    <button onclick="toggleCustomWaterBox()" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center active:scale-90 transition-transform shadow-sm">
+                        <i data-lucide="plus-circle" class="w-6 h-6 text-zinc-400 mb-2"></i>
+                        <span class="text-[11px] font-bold text-zinc-200">Vlastní</span>
+                        <span class="text-[10px] text-zinc-500 mt-0.5">Vybrat objem</span>
                     </button>
                 </div>
 
-                <div id="water-today-logs-box" class="space-y-2 text-xs text-zinc-400"></div>
+                <!-- SLIDER PRO VLASTNÍ OBJEM VODY -->
+                <div id="custom-water-box" class="hidden bg-zinc-950 border border-zinc-800 rounded-2xl p-4 mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Množství na míru</span>
+                        <span id="custom-water-val-display" class="text-lg font-black text-blue-400">500 ml</span>
+                    </div>
+                    <input type="range" id="custom-water-slider" min="10" max="2000" step="10" value="500" class="w-full h-2 bg-blue-900/30 rounded-lg custom-range mb-4" oninput="document.getElementById('custom-water-val-display').innerText = this.value + ' ml'">
+                    <button onclick="handleLogCustomWater()" class="w-full bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-[0_0_10px_rgba(56,189,248,0.2)]">
+                        Přidat tekutinu
+                    </button>
+                </div>
+
+                <div id="water-today-logs-box" class="space-y-2 text-xs text-zinc-400 mt-4"></div>
             </div>
         </div>
 
@@ -198,7 +227,7 @@
             <button onclick="switchTab('dashboard')" class="text-xs text-zinc-400 flex items-center space-x-1 hover:text-white transition-colors active:scale-95"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Zpět na přehled</span></button>
             
             <div class="glass-card rounded-3xl p-5 glow-purple">
-                <h2 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-5">Suplementace pro vybraný den</h2>
+                <h2 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-5">Suplementace a Rozvrh</h2>
                 <div id="vitamins-dynamic-list" class="space-y-3"></div>
 
                 <div class="mt-8 pt-5 border-t border-zinc-800/80 space-y-4">
@@ -227,7 +256,6 @@
             <div class="glass-card rounded-3xl p-5 space-y-4">
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider">Zaznamenat stravu</h2>
                 
-                <!-- Kategorie včetně SVAČINY -->
                 <div class="grid grid-cols-4 gap-2" id="food-category-toggle-box">
                     <button onclick="triggerSelectFoodCategory('Snídaně')" id="foodcat-Snídaně" class="py-2.5 rounded-lg text-[10px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Snídaně</button>
                     <button onclick="triggerSelectFoodCategory('Svačina')" id="foodcat-Svačina" class="py-2.5 rounded-lg text-[10px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-400 active:scale-95 transition-transform">Svačina</button>
@@ -259,7 +287,7 @@
                     </div>
                 </div>
 
-                <button onclick="handleLogFoodSubmit()" class="w-full bg-amber-500 text-black py-3 rounded-xl text-xs font-black active:scale-95 transition-transform shadow-[0_0_15px_rgba(251,191,36,0.2)]">
+                <button onclick="handleLogFoodSubmit()" class="w-full bg-amber-500 text-black py-3 rounded-xl text-xs font-black active:scale-95 transition-transform shadow-md shadow-amber-500/20">
                     Uložit jídlo do historie
                 </button>
             </div>
@@ -275,29 +303,24 @@
             </div>
         </div>
 
-        <!-- ================= OBRAZOVKA 5: ANALÝZA & NASTAVENÍ ================= -->
+        <!-- ================= OBRAZOVKA 5: ANALÝZA ================= -->
         <div id="view-settings" class="space-y-5 tab-view hidden">
             
             <div class="glass-card rounded-3xl p-5 space-y-4">
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2"><i data-lucide="database" class="w-4 h-4 text-blue-400"></i> Osobní Databáze (DEPO)</h2>
-                <p class="text-[11px] text-zinc-500 leading-relaxed">Zadej stejný unikátní kód (např. <code>jenda</code>) na PC i mobilu pro trvalé spojení.</p>
+                <p class="text-[11px] text-zinc-500 leading-relaxed">Používá bezpečný Google Skript. Zadej stejný unikátní kód (např. <code>jenda</code>) na PC i mobilu pro trvalé spojení.</p>
                 <div class="flex gap-2">
                     <input type="text" id="cloud-sync-room-input" placeholder="Zadej synchronizační kód..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-blue-500">
                     <button onclick="saveSyncRoomCode()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform">Spárovat</button>
                 </div>
-            </div>
-
-            <!-- VÝVOJÁŘSKÝ MODUL PRO ZÁCHRANU DAT -->
-            <div class="glass-card rounded-3xl p-5 space-y-3">
-                <h2 class="font-bold text-xs text-amber-500 uppercase tracking-wider flex items-center gap-2"><i data-lucide="life-buoy" class="w-4 h-4 text-amber-500"></i> Záchrana ztracených dat</h2>
-                <p class="text-[11px] text-zinc-400 leading-relaxed">Pokud ti zmizela data z předešlých dnů, tento nástroj najde tvoje staré zálohy uložené v paměti telefonu a nabídne ti je k obnovení.</p>
                 
-                <button onclick="scanForLostData()" class="w-full bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-zinc-200 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-all">
-                    Skenovat paměť iPhonu
-                </button>
-                
-                <!-- Zde se vygenerují nalezené zálohy -->
-                <div id="recovery-results-box" class="space-y-1.5 mt-2"></div>
+                <div class="pt-4 mt-2 border-t border-zinc-800/80">
+                    <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Obnova ztracených dat</h3>
+                    <p class="text-[10px] text-zinc-600 mb-3">Pokud ti v kalendáři chybí starší dny, tento nástroj prohledá starou paměť a záznamy natáhne zpět.</p>
+                    <button onclick="recoverLostData()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-all">
+                        Záchrana starých dat
+                    </button>
+                </div>
             </div>
 
             <div class="glass-card rounded-3xl p-5 space-y-4">
@@ -319,7 +342,7 @@
                 <div class="space-y-4">
                     <div class="flex justify-between items-center bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800">
                         <div>
-                            <p class="text-xs font-bold text-zinc-200">Povolit upomínky na pití</p>
+                            <p class="text-xs font-bold text-zinc-200">Hlavní spínač upomínek</p>
                             <p class="text-[9px] text-zinc-500 font-medium mt-1">Noční klid (22:00-07:00) je automatický</p>
                         </div>
                         <button onclick="handleToggleNotifSystem()" id="btn-toggle-notifs" class="px-3 py-1.5 bg-zinc-800 text-zinc-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform">Vypnuto</button>
@@ -335,7 +358,7 @@
             </div>
 
             <div class="flex justify-center pt-2">
-                <button onclick="handleWipeAllAppData()" class="text-[10px] text-red-500/70 font-semibold underline py-2">Smazat veškerá data aplikace (i v cloudu)</button>
+                <button onclick="handleWipeAllAppData()" class="text-[10px] text-red-500/70 font-semibold underline py-2">Resetovat veškerou paměť aplikace (i v cloudu)</button>
             </div>
         </div>
 
@@ -354,7 +377,6 @@
         const GOOGLE_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzqRrJO7skZKFusk_YjWmwHSaSs2Nf_MO0dBqZBr4_Qpqt26HnZIiWBk4xVdsfLYKmu/exec";
         const WATER_GOAL = 2100;
         
-        // OPRAVA ČASOVÉ ZÓNY
         function getLocalISODate(d) {
             let z = n => ('0' + n).slice(-2);
             return d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate());
@@ -377,7 +399,6 @@
 
         let activeViewDate = today;
 
-        // INICIALIZACE - Prázdný profil dostane čas '0', aby nepřepsal cloud
         let state = JSON.parse(localStorage.getItem('trackerrr_state_v9'));
         if (!state) {
             state = JSON.parse(localStorage.getItem('trackerrr_state_v8')) || { lastUpdated: 0, deletedLogs: [] };
@@ -426,7 +447,7 @@
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('-translate-y-24', 'opacity-0', 'pointer-events-none');
-            }, 4000);
+            }, 3500);
         }
 
         setTimeout(() => {
@@ -439,13 +460,21 @@
 
         function hapticFeedback() { if (window.navigator && window.navigator.vibrate) navigator.vibrate(40); }
 
+        function updateTimePill() {
+            let now = new Date();
+            let mins = now.getHours() * 60 + now.getMinutes();
+            let pct = (mins / 1440) * 100;
+            let pill = document.getElementById('day-progress-pill');
+            if(pill) pill.style.width = pct + '%';
+        }
+        setInterval(updateTimePill, 60000);
+
         function initDayStructure(dateKey) {
             if (!state[dateKey]) state[dateKey] = { water: 0, waterLogs: [], vitamins: {}, food: [] };
             if (!state[dateKey].waterLogs) state[dateKey].waterLogs = [];
             if (!state[dateKey].food) state[dateKey].food = [];
             if (!state[dateKey].vitamins) state[dateKey].vitamins = {};
             
-            // Pročištění logů od těch smazaných
             state[dateKey].waterLogs = state[dateKey].waterLogs.filter(l => !state.deletedLogs.includes(l.id));
             state[dateKey].food = state[dateKey].food.filter(f => !state.deletedLogs.includes(f.id));
             
@@ -475,6 +504,17 @@
             updateUI();
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(triggerSilentCloudUpload, 1500);
+        }
+
+        function toggleCustomWaterBox() {
+            hapticFeedback();
+            document.getElementById('custom-water-box').classList.toggle('hidden');
+        }
+
+        function handleLogCustomWater() {
+            let val = document.getElementById('custom-water-slider').value;
+            handleLogWater(val, 'Vlastní objem');
+            document.getElementById('custom-water-box').classList.add('hidden');
         }
 
         function handleLogWater(amount, type) {
@@ -583,6 +623,7 @@
 
         function updateUI() {
             try {
+                updateTimePill();
                 let data = state[activeViewDate];
                 if(!data) { initDayStructure(activeViewDate); data = state[activeViewDate]; }
 
@@ -592,7 +633,7 @@
                 document.getElementById('circle-pct-value').innerText = pct + '%';
                 document.getElementById('circle-volume-label').innerText = `${data.water} z ${WATER_GOAL} ml`;
                 
-                let scaleValue = (pct / 100) * 1.1;
+                let scaleValue = (pct / 100) * 1.5;
                 document.getElementById('liquid-wave-fluid').style.transform = `translate(-50%, -50%) scale(${scaleValue})`;
 
                 if(document.getElementById('dash-bar-water')) {
@@ -661,7 +702,7 @@
                         return `
                             <div class="flex items-center justify-between p-3.5 bg-zinc-900/40 border border-zinc-800 rounded-2xl">
                                 <div><div class="flex items-baseline"><p class="font-bold text-xs text-zinc-200">${v.name}</p><button onclick="handleRemoveCustomSuplement('${v.id}')" class="text-[10px] font-bold text-zinc-600 hover:text-red-400 ml-2.5 px-1.5 py-0.5 transition-colors">✕</button></div><p class="text-[9px] text-zinc-500 mt-0.5">${v.desc || 'Vlastní suplement'}</p></div>
-                                <div class="flex space-x-2">${circlesHtml}</div>
+                                <div class="flex space-x-1.5">${circlesHtml}</div>
                             </div>
                         `;
                     }).join('');
@@ -686,13 +727,11 @@
                     if(wrapper) {
                         let circle = wrapper.querySelector('div');
                         let is100 = dayPct >= 1;
-                        // FIX TEXTU: 100% zmenšené aby se vešlo
                         let innerText = is100 ? '100%' : Math.round(dayPct*100) + '%';
                         let textSize = is100 ? 'text-[7px]' : 'text-[9px]';
                         
-                        // FIX: 100% Glassmorphism Blue Design
                         if (is100) {
-                            circle.className = `w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 border border-blue-400 flex items-center justify-center ${textSize} text-white font-black shadow-[0_0_12px_rgba(56,189,248,0.8)] transition-all`;
+                            circle.className = `w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-sky-400 border border-sky-300 flex items-center justify-center ${textSize} text-white font-black shadow-[0_0_12px_rgba(56,189,248,0.8)] transition-all`;
                             circle.innerText = innerText;
                         } else if (dayWater > 0) {
                             circle.className = `w-8 h-8 rounded-full bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center ${textSize} text-blue-400 transition-all`;
@@ -702,7 +741,6 @@
                             circle.innerText = '•';
                         }
 
-                        // Zvýraznění aktivního dne svítícím kroužkem (ring) kolem
                         if(key === activeViewDate) {
                             circle.classList.add('ring-2', 'ring-white/30', 'ring-offset-1', 'ring-offset-[#09090b]');
                             if(dayPct === 0) {
@@ -732,7 +770,7 @@
                 if(bCont) {
                     let bHtml = ''; let lHtml = '';
                     if (config.statsPeriod === 'week') {
-                        document.getElementById('period-btn-week').className = "px-3 py-1.5 rounded-lg bg-zinc-800 text-white shadow-sm transition-all";
+                        document.getElementById('period-btn-week').className = "px-3 py-1.5 rounded-lg bg-white/10 text-white shadow-sm transition-all";
                         document.getElementById('period-btn-month').className = "px-3 py-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-all";
                         weekKeys.forEach(key => {
                             let dayData = state[key] || { water: 0 };
@@ -742,7 +780,7 @@
                             lHtml += `<span class="flex-1 text-center">${label}</span>`;
                         });
                     } else {
-                        document.getElementById('period-btn-month').className = "px-3 py-1.5 rounded-lg bg-zinc-800 text-white shadow-sm transition-all";
+                        document.getElementById('period-btn-month').className = "px-3 py-1.5 rounded-lg bg-white/10 text-white shadow-sm transition-all";
                         document.getElementById('period-btn-week').className = "px-3 py-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-all";
                         for (let w = 3; w >= 0; w--) {
                             let sum = 0;
@@ -811,7 +849,7 @@
                 if (todayData.water < WATER_GOAL) {
                     let lastNotifFired = parseInt(localStorage.getItem('last_notif_water') || '0');
                     if (Date.now() - lastNotifFired > 120 * 60 * 1000) {
-                        new Notification("Čas na vodu! 💧", { body: "Napij se ze Stanley Cupu, ať držíš rytmus." });
+                        new Notification("Kde máš vodu? 💧", { body: "Napij se, ať držíš optimální pitný režim." });
                         localStorage.setItem('last_notif_water', Date.now().toString());
                     }
                 }
@@ -828,7 +866,7 @@
                     if (takenCount < expectedCount) {
                         let lastVitFired = parseInt(localStorage.getItem('last_notif_' + v.id) || '0');
                         if (Date.now() - lastVitFired > 60 * 60 * 1000) {
-                            new Notification(`Čas na ${v.name}! ⚡`, { body: `Máš zpoždění s dávkou. Otevři Trackerrr.` });
+                            new Notification(`Je čas na ${v.name}! ⚡`, { body: `Máš zpoždění s dávkou. Otevři Trackerrr.` });
                             localStorage.setItem('last_notif_' + v.id, Date.now().toString());
                         }
                     }
@@ -844,10 +882,9 @@
             config.syncRoom = code;
             saveConfigToDisk();
             loadAndMergeDataFromCloudSystem();
-            showToast('Cloud připraven', `Spojeno v místnosti "${code}". Počkat na synchronizaci...`, 'info');
+            showToast('Cloud propojen', `Spojeno v místnosti "${code}". Data se nyní budou synchronizovat s ostatními zařízeními.`, 'success');
         }
 
-        // CHYTRÝ DEEP MERGE SYSTEM
         function mergeCloudAndLocal(local, remote) {
             let merged = { deletedLogs: [], lastUpdated: Date.now() };
             let localDel = local.deletedLogs || [];
@@ -903,55 +940,50 @@
         async function loadAndMergeDataFromCloudSystem() {
             if (!config.syncRoom) {
                 document.getElementById('loading-overlay').style.display = 'none';
-                setSyncLabelStatus("Lokální režim", "bg-zinc-900 text-zinc-400 border border-zinc-800", "cloud");
+                setSyncLabelStatus("bg-zinc-900 text-zinc-400 border border-zinc-800", "cloud");
                 updateUI(); return;
             }
-            setSyncLabelStatus("Spojování...", "bg-zinc-900 text-amber-400 border border-zinc-800", "refresh-cw", true);
+            setSyncLabelStatus("bg-zinc-900 text-amber-400 border border-zinc-800", "refresh-cw", true);
             try {
                 const response = await fetch(GOOGLE_APP_SCRIPT);
                 if (response.status === 200) {
                     const allCloudData = await response.json();
                     if (allCloudData && allCloudData[config.syncRoom]) {
                         let cloudData = allCloudData[config.syncRoom];
+                        let localTime = state.lastUpdated || 0;
+                        let cloudTime = cloudData.lastUpdated || 0;
                         
-                        // ZÁCHRANA PROTI PŘEPSÁNÍ PRÁZDNOTOU
-                        state = mergeCloudAndLocal(state, cloudData);
-                        localStorage.setItem('trackerrr_state_v9', JSON.stringify(state));
-                        
-                        await fetch(GOOGLE_APP_SCRIPT, { method: 'POST', body: JSON.stringify({ date: config.syncRoom, data: state }) });
+                        if (cloudTime > localTime) {
+                            state = cloudData;
+                            localStorage.setItem('trackerrr_state_v9', JSON.stringify(state));
+                        } else if (localTime > cloudTime) {
+                            await fetch(GOOGLE_APP_SCRIPT, { method: 'POST', body: JSON.stringify({ date: config.syncRoom, data: state }) });
+                        }
                     } else {
                         await fetch(GOOGLE_APP_SCRIPT, { method: 'POST', body: JSON.stringify({ date: config.syncRoom, data: state }) });
                     }
                 }
-                setSyncLabelStatus("Spárováno", "glass-card text-emerald-400", "cloud-check");
-            } catch (e) { setSyncLabelStatus("Chyba cloudu", "bg-red-950/40 text-red-400 border border-red-900/50", "cloud-off"); }
+                setSyncLabelStatus("glass-card text-emerald-400", "cloud-check");
+            } catch (e) { setSyncLabelStatus("bg-red-950/40 text-red-400 border border-red-900/50", "cloud-off"); }
             finally { document.getElementById('loading-overlay').style.display = 'none'; updateUI(); }
         }
 
         async function triggerSilentCloudUpload() {
             if (!config.syncRoom) return;
-            setSyncLabelStatus("Ukládám...", "bg-zinc-900 text-amber-400 border border-zinc-800", "refresh-cw", true);
+            setSyncLabelStatus("bg-zinc-900 text-amber-400 border border-zinc-800", "refresh-cw", true);
             try {
-                const response = await fetch(GOOGLE_APP_SCRIPT);
-                if (response.status === 200) {
-                    const allCloudData = await response.json();
-                    if (allCloudData && allCloudData[config.syncRoom]) {
-                        state = mergeCloudAndLocal(state, allCloudData[config.syncRoom]);
-                        localStorage.setItem('trackerrr_state_v9', JSON.stringify(state));
-                    }
-                }
                 await fetch(GOOGLE_APP_SCRIPT, { method: 'POST', body: JSON.stringify({ date: config.syncRoom, data: state }) });
-                setSyncLabelStatus("Spárováno", "glass-card text-emerald-400", "cloud-check");
-            } catch (e) { setSyncLabelStatus("Chyba cloudu", "bg-red-950/40 text-red-400 border border-red-900/50", "cloud-off"); }
+                setSyncLabelStatus("glass-card text-emerald-400", "cloud-check");
+            } catch (e) { setSyncLabelStatus("bg-red-950/40 text-red-400 border border-red-900/50", "cloud-off"); }
         }
 
         function triggerManualSync() { hapticFeedback(); loadAndMergeDataFromCloudSystem(); }
         
-        function setSyncLabelStatus(text, classes, iconName, spin = false) {
+        function setSyncLabelStatus(classes, iconName, spin = false) {
             const ind = document.getElementById('sync-indicator');
             if(ind) {
-                ind.className = `text-[11px] px-3 py-1.5 rounded-full flex items-center space-x-1.5 font-bold cursor-pointer transition-all active:scale-95 ${classes}`;
-                ind.innerHTML = `<i data-lucide="${iconName}" class="w-3.5 h-3.5 ${spin ? 'animate-spin' : ''}"></i><span>${text}</span>`;
+                ind.className = `p-2.5 rounded-full cursor-pointer transition-all active:scale-95 ${classes}`;
+                ind.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 ${spin ? 'animate-spin' : ''}"></i>`;
                 try { lucide.createIcons(); } catch(e){}
             }
         }
@@ -966,45 +998,23 @@
             }
         }
 
-        // ZÁCHRANNÝ MODUL (Vytáhne data z paměti telefonu)
-        function scanForLostData() {
+        function recoverLostData() {
             hapticFeedback();
-            let keys = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                let key = localStorage.key(i);
-                if (key.includes('state') || key.includes('tracker')) {
-                    keys.push(key);
-                }
-            }
-            
-            let html = '';
-            if(keys.length === 0) {
-                html = `<p class="text-[10px] text-zinc-500 py-2">Žádné staré zálohy nenalezeny.</p>`;
-            } else {
-                keys.forEach(k => {
-                    let val = localStorage.getItem(k) || '';
-                    let size = (val.length / 1024).toFixed(1);
-                    html += `
-                        <div class="flex justify-between items-center bg-zinc-900/60 border border-zinc-800 p-2 rounded-lg text-[10px] mt-1">
-                            <span class="text-zinc-400 truncate w-2/3">${k} <strong class="text-zinc-500 ml-1">(${size} KB)</strong></span>
-                            <button onclick="forceRestoreFromKey('${k}')" class="bg-blue-600 text-white px-2 py-1 rounded">Vytáhnout</button>
-                        </div>
-                    `;
-                });
-            }
-            document.getElementById('recovery-results-box').innerHTML = html;
-        }
-
-        function forceRestoreFromKey(key) {
-            try {
-                let oldData = JSON.parse(localStorage.getItem(key));
+            let keysToSearch = ['trackerrr_state_v8', 'trackerrr_state_v7', 'trackerrr_state_v6', 'trackerrr_state_v5', 'trackerrr_state_v4', 'trackerrr_state_v3', 'trackerrr_state_v2', 'trackerrr_state_v1', 'app_tracker_state'];
+            let foundAnything = false;
+            keysToSearch.forEach(k => {
+                let oldData = JSON.parse(localStorage.getItem(k));
                 if(oldData) {
                     state = mergeCloudAndLocal(state, oldData);
-                    commitLocalChange();
-                    showToast('Data zachráněna', `Záloha ${key} úspěšně nahrána a sloučena.`, 'success');
+                    foundAnything = true;
                 }
-            } catch(e) {
-                showToast('Chyba', 'Data nešla přečíst.', 'error');
+            });
+
+            if(foundAnything) {
+                commitLocalChange();
+                showToast('Záchrana úspěšná', 'Podařilo se mi vytáhnout tvá stará data do kalendáře.', 'success');
+            } else {
+                showToast('Nenalezeno', 'Ztracená data v paměti telefonu bohužel nejsou.', 'error');
             }
         }
 
