@@ -15,7 +15,6 @@
         
         /* 1. Splash Screen & Logo Animace */
         #splash-screen { background-color: #050505; }
-        .splash-text span { font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif; font-weight: 900; color: white; display: inline-block; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .splash-out { animation: splashZoomOut 0.8s cubic-bezier(0.5, 0, 0.2, 1) forwards; }
         @keyframes splashZoomOut {
             0% { opacity: 1; transform: scale(1); filter: blur(0); }
@@ -23,15 +22,15 @@
             100% { opacity: 0; transform: scale(3.5); filter: blur(15px); pointer-events: none; }
         }
 
-        /* 2. Prémiové přechody mezi záložkami (Morphing/Sliding) */
-        .animate-tab-enter { animation: tabFadeInUp 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        /* 2. Prémiové přechody mezi záložkami (Delší a plynulejší morphing) */
+        .animate-tab-enter { animation: tabFadeInUp 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         @keyframes tabFadeInUp {
             0% { opacity: 0; transform: translateY(15px) scale(0.98); filter: blur(4px); }
             100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
         }
 
         /* 3. Slot Machine Counter (Animace čísel % hydratace) */
-        .slot-rolling { filter: blur(1.5px); transition: none; }
+        .slot-rolling { filter: blur(1px); transition: none; }
         .slot-settled { filter: blur(0); transform: translateY(0); transition: filter 0.3s ease-out; }
 
         /* Voda Blob Animace */
@@ -68,31 +67,76 @@
             box-shadow: 0 0 12px rgba(56, 189, 248, 0.8); cursor: pointer;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* ================= NOVÝ GLASS SPODNÍ TAB BAR ================= */
+        .glass-tab-bar {
+            background: rgba(15, 15, 18, 0.55);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2.5rem; /* Pill shape */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 48px;
+            color: #71717a; /* Inactive barva */
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Lamp Effect: Světelný bod nahoře */
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 20px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 4px;
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            box-shadow: 0 0 12px 2px rgba(255, 255, 255, 0.9);
+            z-index: 10;
+        }
+
+        /* Lamp Effect: Kužel světla */
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            clip-path: polygon(25% 0, 75% 0, 100% 100%, 0% 100%);
+        }
+
+        .nav-item.active { color: #ffffff; transform: translateY(-3px); }
+        .nav-item.active::before { opacity: 1; transform: translateX(-50%) scaleX(1); }
+        .nav-item.active::after { opacity: 1; }
     </style>
 </head>
-<body class="pb-28">
+<body class="pb-32">
 
-    <!-- SPLASH SCREEN (Hravé Logo) -->
+    <!-- SPLASH SCREEN (S vlastním logem) -->
     <div id="splash-screen" class="fixed inset-0 z-[200] flex items-center justify-center">
-        <div class="flex flex-col items-center justify-center scale-110">
-            <div class="flex space-x-1.5 mb-1 splash-text">
-                <span class="text-6xl transform -rotate-6 translate-y-2">T</span>
-                <span class="text-4xl transform rotate-3 translate-y-3">r</span>
-                <span class="text-5xl transform -rotate-12 translate-y-1">a</span>
-            </div>
-            <div class="flex space-x-0.5 splash-text">
-                <span class="text-6xl transform rotate-6 -translate-y-1">c</span>
-                <span class="text-5xl transform -rotate-3 mt-1">k</span>
-                <span class="text-4xl transform rotate-12 -translate-y-2">e</span>
-                <span class="text-5xl transform -rotate-6 translate-y-2">r</span>
-                <span class="text-3xl transform rotate-6 mt-3">r</span>
-                <span class="text-4xl transform -rotate-12 translate-y-1">r</span>
-            </div>
+        <div id="splash-wrapper" class="flex items-center justify-center">
+            <img src="tracker logo_00000.png" alt="Trackerrr Logo" class="w-56 h-auto drop-shadow-2xl">
         </div>
     </div>
 
     <!-- TOAST NOTIFIKACE -->
-    <div id="toast-modal" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-800 shadow-2xl rounded-2xl p-4 w-11/12 max-w-sm z-[100] transform translate-y-10 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toast-modal" class="fixed top-12 left-1/2 -translate-x-1/2 bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 shadow-2xl rounded-2xl p-4 w-11/12 max-w-sm z-[100] transform -translate-y-10 opacity-0 transition-all duration-300 pointer-events-none">
         <div class="flex items-start space-x-3">
             <div id="toast-icon" class="pt-0.5"></div>
             <div>
@@ -157,7 +201,6 @@
                 <div class="orb-blob cursor-pointer active:scale-95" onclick="switchTab('water')">
                     <div id="liquid-wave-fluid" class="orb-core"></div>
                     <div class="orb-content flex flex-col items-center justify-center text-center">
-                        <!-- Číslo procent, které se bude protáčet -->
                         <span id="circle-pct-value" class="text-5xl font-black text-white tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] inline-block">0%</span>
                         <span class="text-[10px] text-blue-100 font-bold tracking-widest uppercase opacity-90 mt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Hydratace</span>
                     </div>
@@ -394,13 +437,23 @@
 
     </div>
 
-    <!-- SPODNÍ NAV PANEL -->
-    <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-900/70 px-4 py-3 flex justify-around items-center shadow-2xl rounded-t-3xl z-50">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center text-blue-400 active:scale-95 transition-transform"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span class="text-[9px] font-bold mt-1.5">Přehled</span></button>
-        <button onclick="switchTab('water')" id="nav-water" class="flex flex-col items-center text-zinc-500 hover:text-zinc-300 active:scale-95 transition-transform"><i data-lucide="glass-water" class="w-4 h-4"></i><span class="text-[9px] font-bold mt-1.5">Voda</span></button>
-        <button onclick="switchTab('vitamins')" id="nav-vitamins" class="flex flex-col items-center text-zinc-500 hover:text-zinc-300 active:scale-95 transition-transform"><i data-lucide="pill" class="w-4 h-4"></i><span class="text-[9px] font-bold mt-1.5">Vitamíny</span></button>
-        <button onclick="switchTab('food')" id="nav-food" class="flex flex-col items-center text-zinc-500 hover:text-zinc-300 active:scale-95 transition-transform"><i data-lucide="utensils" class="w-4 h-4"></i><span class="text-[9px] font-bold mt-1.5">Jídlo</span></button>
-        <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center text-zinc-500 hover:text-zinc-300 active:scale-95 transition-transform"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span class="text-[9px] font-bold mt-1.5">Analýza</span></button>
+    <!-- SPODNÍ NAV PANEL (Floating Liquid Glass & Lamp Effect) -->
+    <div class="fixed bottom-6 left-5 right-5 max-w-sm mx-auto glass-tab-bar flex justify-around items-center px-2 py-1.5 z-50">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active w-14 cursor-pointer">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        </button>
+        <button onclick="switchTab('water')" id="nav-water" class="nav-item w-14 cursor-pointer">
+            <i data-lucide="glass-water" class="w-5 h-5"></i>
+        </button>
+        <button onclick="switchTab('vitamins')" id="nav-vitamins" class="nav-item w-14 cursor-pointer">
+            <i data-lucide="pill" class="w-5 h-5"></i>
+        </button>
+        <button onclick="switchTab('food')" id="nav-food" class="nav-item w-14 cursor-pointer">
+            <i data-lucide="utensils" class="w-5 h-5"></i>
+        </button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="nav-item w-14 cursor-pointer">
+            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        </button>
     </div>
 
     <script>
@@ -459,17 +512,16 @@
         let currentFoodEmoji = '🍳';
         let globalNotifTimer = null;
         let debounceTimer = null;
-        let previousWaterPct = 0; // Pomocná proměnná pro Slot Machine
+        let previousWaterPct = 0;
 
-        // Hravý Splash Screen
+        // Splash Screen (S aplikací animace na wrapper)
         setTimeout(() => {
-            const loader = document.getElementById('loading-overlay');
-            if (loader) loader.style.display = 'none';
-            const splash = document.getElementById('splash-screen');
-            if (splash) {
-                splash.classList.add('splash-out');
-                setTimeout(() => { splash.style.display = 'none'; }, 800);
-            }
+            const splashWrapper = document.getElementById('splash-wrapper');
+            if (splashWrapper) splashWrapper.classList.add('splash-out');
+            setTimeout(() => { 
+                const splash = document.getElementById('splash-screen');
+                if(splash) splash.style.display = 'none'; 
+            }, 800);
             updateUI();
         }, 1800);
 
@@ -485,11 +537,11 @@
             document.getElementById('toast-icon').innerHTML = iconHtml;
             try { lucide.createIcons(); } catch(e){}
             
-            toast.classList.remove('-translate-y-24', 'opacity-0', 'pointer-events-none');
+            toast.classList.remove('-translate-y-10', 'opacity-0', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('-translate-y-24', 'opacity-0', 'pointer-events-none');
+                toast.classList.add('-translate-y-10', 'opacity-0', 'pointer-events-none');
             }, 3500);
         }
 
@@ -505,7 +557,7 @@
         setInterval(updateTimePill, 60000);
         updateTimePill();
 
-        // SLOT MACHINE COUNTER LOGIC
+        // Zpomalená a zřetelnější Slot Machine Animace
         function animateCounter(elem, start, end, duration) {
             let startTime = null;
             elem.classList.add('slot-rolling');
@@ -513,13 +565,14 @@
             const step = (timestamp) => {
                 if (!startTime) startTime = timestamp;
                 const progress = Math.min((timestamp - startTime) / duration, 1);
-                const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress); // Expo ease out
+                const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
                 const current = Math.floor(start + (end - start) * ease);
                 
                 elem.innerText = current + '%';
                 
-                // Shake efekt nahoru/dolu pro pocit protáčení číslic
-                let yOffset = (current % 10) * -1.5; 
+                // Zjemněný shake efekt
+                let yOffset = (current % 2 === 0) ? -1 : 1; 
+                if(progress === 1) yOffset = 0;
                 elem.style.transform = `translateY(${yOffset}px)`;
 
                 if (progress < 1) {
@@ -674,24 +727,31 @@
 
         function switchTab(tabId) {
             hapticFeedback();
-            // Morphing transition reset
+            
+            // 1. Zkryjeme všechny obsahy a zrušíme starou animaci
             document.querySelectorAll('.tab-view').forEach(v => {
                 v.classList.add('hidden');
                 v.classList.remove('animate-tab-enter');
             });
-            document.querySelectorAll('[id^="nav-"]').forEach(btn => btn.className = "flex flex-col items-center text-zinc-500 hover:text-zinc-300 transition-transform active:scale-95");
             
+            // 2. Resetujeme stav z ikon ve spodním nav baru
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 3. Aktivujeme správný obsah a spustíme animaci přes reflow
             const activeView = document.getElementById('view-' + tabId);
             activeView.classList.remove('hidden');
-            // Trigger reflow for animation restart
-            void activeView.offsetWidth;
+            void activeView.offsetWidth; 
             activeView.classList.add('animate-tab-enter');
             
-            document.getElementById('nav-' + tabId).className = "flex flex-col items-center text-blue-400 transition-transform active:scale-95";
+            // 4. Zapneme efekt lampičky pro vybranou ikonu
+            document.getElementById('nav-' + tabId).classList.add('active');
             
             const titles = { 'dashboard': 'Přehled', 'water': 'Hydratace', 'vitamins': 'Suplementace', 'food': 'Stravování', 'settings': 'Analýza' };
             document.getElementById('page-title').innerText = titles[tabId];
-            window.scrollTo({ top: 0, behavior: 'smooth' }); updateUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            updateUI();
         }
 
         function getVitSchedule(freq) {
@@ -711,10 +771,10 @@
                 let pct = Math.min(Math.round(((parseInt(data.water) || 0) / WATER_GOAL) * 100), 100);
                 if (isNaN(pct)) pct = 0;
                 
-                // SLOT MACHINE ANIMACE
+                // SLOT MACHINE ANIMACE (Zpomalená pro lepší čitelnost)
                 let pctElem = document.getElementById('circle-pct-value');
                 if (pct !== previousWaterPct && !skipAnimation) {
-                    animateCounter(pctElem, previousWaterPct, pct, 1200);
+                    animateCounter(pctElem, previousWaterPct, pct, 2800); 
                     previousWaterPct = pct;
                 } else {
                     pctElem.innerText = pct + '%';
