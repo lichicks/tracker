@@ -108,7 +108,8 @@
     <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="fixed inset-0 z-[200] flex items-center justify-center">
         <div id="splash-wrapper" class="flex items-center justify-center">
-            <img src="https://i.ibb.co/3mhprjwH/tracker-logo-00000.png" alt="Trackerrr Logo" class="w-56 h-auto drop-shadow-2xl">
+            <!-- AKTUALIZOVANÉ LOGO (Přímý odkaz pro zobrazení bez okrajů) -->
+            <img src="https://i.ibb.co/FqVkFGB1/tracker-logo.png" alt="Trackerrr Logo" class="w-56 h-auto drop-shadow-2xl">
         </div>
     </div>
 
@@ -156,7 +157,7 @@
         <!-- ================= OBRAZOVKA 1: DASHBOARD ================= -->
         <div id="view-dashboard" class="space-y-6 tab-view animate-tab-enter">
             
-            <!-- KALENDÁŘ (Předěláno na Liquid Glass) -->
+            <!-- KALENDÁŘ (Liquid Glass) -->
             <div class="glass-panel p-5 flex flex-col items-center">
                 <div class="w-full flex justify-between items-center mb-4 px-1 text-xs text-zinc-400 font-medium">
                     <span class="flex items-center gap-1.5"><i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> <strong class="text-white text-sm drop-shadow" id="streak-count">0</strong> DNÍ SÉRIE</span>
@@ -838,7 +839,6 @@
                     } else { foodLogBox.innerHTML = `<p class="text-center py-4 text-zinc-600 text-xs">Bez záznamu jídla.</p>`; }
                 }
 
-                // Generování dnů do kalendáře s novým glassmorphism vzhledem
                 let calHtml = '';
                 const dayLabels = ['PO', 'ÚT', 'ST', 'ČT', 'PÁ', 'SO', 'NE'];
                 
