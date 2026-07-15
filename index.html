@@ -13,7 +13,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #09090b; color: #f4f4f5; -webkit-tap-highlight-color: transparent; overflow-x: hidden; overscroll-behavior-y: none; }
         .glass-card { background: rgba(20, 20, 23, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(63, 63, 70, 0.35); }
         
-        /* 1. Splash Screen & Logo Animace */
+        /* Splash Screen & Logo Animace */
         #splash-screen { background-color: #09090b; }
         .splash-out { animation: splashZoomOut 0.8s cubic-bezier(0.5, 0, 0.2, 1) forwards; }
         @keyframes splashZoomOut {
@@ -22,14 +22,14 @@
             100% { opacity: 0; transform: scale(3.5); filter: blur(15px); pointer-events: none; }
         }
 
-        /* 2. Prémiové přechody mezi záložkami */
+        /* Přechody mezi záložkami */
         .animate-tab-enter { animation: tabFadeInUp 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         @keyframes tabFadeInUp {
             0% { opacity: 0; transform: translateY(15px) scale(0.98); filter: blur(4px); }
             100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
         }
 
-        /* 3. Slot Machine Counter */
+        /* Slot Machine Counter */
         .slot-rolling { filter: blur(1px); transition: none; }
         .slot-settled { filter: blur(0); transform: translateY(0); transition: filter 0.2s ease-out; }
 
@@ -131,10 +131,11 @@
                 <h1 id="page-title" class="text-xl font-black text-white tracking-tight text-shadow">Přehled</h1>
             </div>
             
-            <!-- Smart Battery Pill (Dynamic Glow) -->
+            <!-- Upravená Baterka dne (100% -> 0%) -->
             <div class="w-1/3 flex justify-center">
-                <div id="day-progress-container" class="w-14 h-3.5 rounded-full bg-zinc-950 border border-white/10 overflow-hidden relative flex items-center transition-shadow duration-1000">
-                    <div id="day-progress-pill" class="h-full opacity-90 transition-all duration-1000" style="width: 0%"></div>
+                <div id="day-progress-container" class="w-16 h-4 rounded-full bg-zinc-950 border border-white/10 overflow-hidden relative flex items-center transition-shadow duration-1000">
+                    <div id="day-progress-pill" class="h-full opacity-90 transition-all duration-1000" style="width: 100%"></div>
+                    <span id="day-progress-text" class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-white drop-shadow-md pointer-events-none">100%</span>
                 </div>
             </div>
 
@@ -281,7 +282,6 @@
                             <option value="5">5x denně</option>
                         </select>
                     </div>
-                    <!-- Výběr času pro 1x denně -->
                     <div id="custom-vit-time-wrapper" class="flex gap-2">
                         <select id="custom-vit-time-select" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
                             <option value="Ráno">Ráno (09:00)</option>
@@ -367,7 +367,7 @@
                     <div class="flex justify-between items-center bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800">
                         <div>
                             <p class="text-xs font-bold text-zinc-200">Hlavní spínač upomínek</p>
-                            <p class="text-[9px] text-zinc-500 font-medium mt-1">Noční klid (22:00-07:00) je automatický</p>
+                            <p class="text-[9px] text-zinc-500 font-medium mt-1">Noční klid (22:00-07:00)</p>
                         </div>
                         <button onclick="handleToggleNotifSystem()" id="btn-toggle-notifs" class="px-3 py-1.5 bg-zinc-800 text-zinc-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform">Vypnuto</button>
                     </div>
@@ -484,6 +484,7 @@
             let iconHtml = '<i data-lucide="info" class="w-6 h-6 text-blue-400"></i>';
             if(type === 'success') iconHtml = '<i data-lucide="check-circle" class="w-6 h-6 text-emerald-400"></i>';
             if(type === 'error') iconHtml = '<i data-lucide="x-circle" class="w-6 h-6 text-red-400"></i>';
+            if(type === 'sync') iconHtml = '<i data-lucide="refresh-cw" class="w-6 h-6 text-amber-400 animate-spin"></i>';
             
             document.getElementById('toast-icon').innerHTML = iconHtml;
             try { lucide.createIcons(); } catch(e){}
@@ -498,15 +499,16 @@
 
         function hapticFeedback() { if (window.navigator && window.navigator.vibrate) navigator.vibrate(40); }
 
-        // ================= SMART BATTERY PILL =================
+        // ================= SMART BATTERY PILL (100% -> 0%) =================
         function updateTimePill() {
             let now = new Date();
             let hr = now.getHours();
             let mins = hr * 60 + now.getMinutes();
-            let pct = (mins / 1440) * 100;
+            let pctRemaining = Math.max(0, 100 - ((mins / 1440) * 100));
             
             let pill = document.getElementById('day-progress-pill');
             let container = document.getElementById('day-progress-container');
+            let textLabel = document.getElementById('day-progress-text');
             
             if(!pill || !container) return;
 
@@ -529,13 +531,14 @@
                 container.style.boxShadow = `0 0 12px rgba(99, 102, 241, 0.5), inset 0 0 6px rgba(99, 102, 241, 0.3)`;
             }
 
-            pill.className = `h-full bg-gradient-to-r ${colorClass} opacity-90 transition-all duration-1000`;
-            pill.style.width = pct + '%';
+            pill.className = `h-full bg-gradient-to-r ${colorClass} opacity-90 transition-all duration-1000 flex items-center justify-end`;
+            pill.style.width = pctRemaining + '%';
+            if(textLabel) textLabel.innerText = Math.round(pctRemaining) + '%';
         }
         setInterval(updateTimePill, 60000);
         updateTimePill();
 
-        // ================= RYCHLEJŠÍ SLOT MACHINE =================
+        // ================= SLOT MACHINE =================
         function animateCounter(elem, start, end, duration) {
             let startTime = null;
             elem.classList.add('slot-rolling');
@@ -566,7 +569,6 @@
             window.requestAnimationFrame(step);
         }
 
-        // ================= SLIDER SLOT MACHINE EFEKT =================
         let sliderDisplayVal = 500;
         let sliderTargetVal = 500;
         let sliderAnimFrame = null;
@@ -770,17 +772,16 @@
             updateUI();
         }
 
-        // ================= ÚPRAVA ROZVRHU SUPLEMENTŮ =================
+        // ================= ROZVRH SUPLEMENTŮ (Opraveno na 5x) =================
         function getVitSchedule(freq, preferredTime = 'Večer') {
             if (freq === 1) {
                 if(preferredTime === 'Ráno') return ["09:00"];
                 if(preferredTime === 'Během dne') return ["13:00"];
-                return ["21:00"]; // Default
+                return ["21:00"];
             }
             if (freq === 2) return ["09:00", "21:00"];
             if (freq === 3) return ["09:00", "15:00", "21:00"];
             if (freq === 4) return ["09:00", "13:00", "17:00", "21:00"];
-            // Tady to v minulé verzi chybělo! Pro tvůj 5x denně bráný Kreatin:
             if (freq === 5) return ["09:00", "12:00", "15:00", "18:00", "21:00"];
             
             let t = []; for(let i=0; i<freq; i++) t.push("Dávka "+(i+1)); return t;
@@ -793,9 +794,9 @@
                 Notification.requestPermission().then(p => { 
                     if (p === "granted") { 
                         config.notifEnabled = true; localStorage.setItem('trackerrr_config_v10', JSON.stringify(config)); startNotificationEngine(); updateUI(); 
-                        showToast('Notifikace zapnuty', 'Připomenutí suplementů a pití je aktivní (22:00-07:00 tichý režim).', 'success');
+                        showToast('Notifikace zapnuty', 'Upozornění jsou aktivní.', 'success');
                     } else {
-                        showToast('Přístup zamítnut', 'Povolte notifikace pro tuto webovou aplikaci v Nastavení vašeho iPhonu.', 'error');
+                        showToast('Přístup zamítnut', 'Povolte notifikace pro tuto appku v Nastavení iOS.', 'error');
                     }
                 });
             } else { 
@@ -808,49 +809,59 @@
             hapticFeedback(); config.notifInterval = m; localStorage.setItem('trackerrr_config_v10', JSON.stringify(config)); startNotificationEngine(); updateUI(); 
         }
         
+        function checkNotificationsNow() {
+            if (!config.notifEnabled) return; 
+            let now = new Date(); let hr = now.getHours();
+            if (hr >= 22 || hr < 7) return; 
+            
+            let todayData = state[today];
+            if(!todayData) return;
+
+            if (todayData.water < WATER_GOAL) {
+                let lastNotifFired = parseInt(localStorage.getItem('last_notif_water') || '0');
+                if (Date.now() - lastNotifFired > config.notifInterval * 60 * 1000) {
+                    new Notification("Kde máš vodu? 💧", { body: "Napij se, ať držíš optimální pitný režim." });
+                    localStorage.setItem('last_notif_water', Date.now().toString());
+                }
+            }
+
+            config.customSuplementsList.forEach(v => {
+                let schedArr = getVitSchedule(v.frequency, v.preferredTime);
+                let takenCount = (todayData.vitamins[v.id] || []).length;
+                let expectedCount = 0;
+                schedArr.forEach(t => {
+                    if(t.includes(':')) {
+                        let [tHr, tMin] = t.split(':');
+                        if (hr > parseInt(tHr) || (hr === parseInt(tHr) && now.getMinutes() >= 0)) expectedCount++;
+                    }
+                });
+
+                if (takenCount < expectedCount) {
+                    let lastVitFired = parseInt(localStorage.getItem('last_notif_' + v.id) || '0');
+                    if (Date.now() - lastVitFired > config.notifInterval * 60 * 1000) {
+                        new Notification(`Je čas na ${v.name}! ⚡`, { body: `Máš zpoždění s dávkou. Otevři Trackerrr.` });
+                        localStorage.setItem('last_notif_' + v.id, Date.now().toString());
+                    }
+                }
+            });
+        }
+
         function startNotificationEngine() { 
             stopNotificationEngine(); 
             if (!config.notifEnabled) return; 
-            globalNotifTimer = setInterval(() => { 
-                let now = new Date(); let hr = now.getHours();
-                if (hr >= 22 || hr < 7) return; 
-                
-                let todayData = state[today];
-                if(!todayData) return;
-
-                if (todayData.water < WATER_GOAL) {
-                    let lastNotifFired = parseInt(localStorage.getItem('last_notif_water') || '0');
-                    if (Date.now() - lastNotifFired > config.notifInterval * 60 * 1000) {
-                        new Notification("Kde máš vodu? 💧", { body: "Napij se, ať držíš optimální pitný režim." });
-                        localStorage.setItem('last_notif_water', Date.now().toString());
-                    }
-                }
-
-                config.customSuplementsList.forEach(v => {
-                    let schedArr = getVitSchedule(v.frequency, v.preferredTime);
-                    let takenCount = (todayData.vitamins[v.id] || []).length;
-                    let expectedCount = 0;
-                    schedArr.forEach(t => {
-                        if(t.includes(':')) {
-                            let [tHr, tMin] = t.split(':');
-                            if (hr > parseInt(tHr) || (hr === parseInt(tHr) && now.getMinutes() >= 0)) expectedCount++;
-                        }
-                    });
-
-                    if (takenCount < expectedCount) {
-                        let lastVitFired = parseInt(localStorage.getItem('last_notif_' + v.id) || '0');
-                        if (Date.now() - lastVitFired > config.notifInterval * 60 * 1000) {
-                            new Notification(`Je čas na ${v.name}! ⚡`, { body: `Máš zpoždění s dávkou. Otevři Trackerrr.` });
-                            localStorage.setItem('last_notif_' + v.id, Date.now().toString());
-                        }
-                    }
-                });
-            }, 60000); 
+            globalNotifTimer = setInterval(checkNotificationsNow, 60000); 
         }
 
         function stopNotificationEngine() { 
             if(globalNotifTimer) { clearInterval(globalNotifTimer); globalNotifTimer = null; } 
         }
+
+        // Zkontroluj zmeškané věci hned, jak uživatel appku probudí (obejití iOS omezení)
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                checkNotificationsNow();
+            }
+        });
 
         function updateUI(skipAnimation = false) {
             try {
@@ -1039,7 +1050,6 @@
                     bCont.innerHTML = bHtml; document.getElementById('analytics-labels-wrapper').innerHTML = lHtml;
                 }
 
-                // AKTUALIZACE UI PRO NOTIFIKACE (VRÁCENO ZPĚT!)
                 const btn = document.getElementById('btn-toggle-notifs'); const notifbox = document.getElementById('notif-interval-wrapper');
                 if(btn) {
                     document.querySelectorAll('[id^="int-btn-"]').forEach(b => b.className = "bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg text-zinc-500 active:scale-95 transition-transform");
@@ -1059,7 +1069,7 @@
             } catch(fatalError) { console.error(fatalError); }
         }
 
-        // ================= EXPORT / IMPORT =================
+        // ================= CLOUD SYNC A EXPORT/IMPORT =================
         function exportDataToJson() {
             hapticFeedback();
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
@@ -1094,6 +1104,15 @@
 
         function triggerChangePeriod(p) { hapticFeedback(); config.statsPeriod = p; localStorage.setItem('trackerrr_config_v10', JSON.stringify(config)); updateUI(); }
 
+        function setSyncLabelStatus(classes, iconName, spin = false) {
+            const ind = document.getElementById('sync-indicator');
+            if(ind) {
+                ind.className = `p-2.5 rounded-full cursor-pointer transition-all active:scale-95 ${classes}`;
+                ind.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 ${spin ? 'animate-spin' : ''}"></i>`;
+                try { lucide.createIcons(); } catch(e){}
+            }
+        }
+
         function saveSyncRoomCode() {
             hapticFeedback();
             let code = document.getElementById('cloud-sync-room-input').value.trim().toLowerCase().replace(/[^a-z0-8_-]/g, '');
@@ -1101,7 +1120,7 @@
             config.syncRoom = code;
             localStorage.setItem('trackerrr_config_v10', JSON.stringify(config));
             loadAndMergeDataFromCloudSystem();
-            showToast('Cloud propojen', `Spojeno v místnosti "${code}". Data se nyní budou synchronizovat s ostatními zařízeními.`, 'success');
+            showToast('Cloud propojen', `Spojeno v místnosti "${code}". Data se nyní budou synchronizovat.`, 'success');
         }
 
         function mergeCloudAndLocal(local, remote) {
@@ -1154,31 +1173,53 @@
         }
 
         async function loadAndMergeDataFromCloudSystem() {
-            if (!config.syncRoom) return;
+            if (!config.syncRoom) {
+                setSyncLabelStatus("bg-zinc-900 text-zinc-400 border border-zinc-800", "cloud");
+                return;
+            }
+            setSyncLabelStatus("bg-zinc-900 text-amber-400 border border-zinc-800", "refresh-cw", true);
             try {
                 const response = await fetch(GOOGLE_APP_SCRIPT);
                 if (response.status === 200) {
                     const allCloudData = await response.json();
                     if (allCloudData && allCloudData[config.syncRoom]) {
                         let cloudData = allCloudData[config.syncRoom];
-                        if (cloudData.lastUpdated > state.lastUpdated) {
-                            state = cloudData;
+                        let localTime = state.lastUpdated || 0;
+                        let cloudTime = cloudData.lastUpdated || 0;
+                        
+                        if (cloudTime > localTime) {
+                            state = mergeCloudAndLocal(state, cloudData);
                             localStorage.setItem('trackerrr_state_v10', JSON.stringify(state));
+                        } else if (localTime > cloudTime) {
+                            await fetch(GOOGLE_APP_SCRIPT, { method: 'POST', body: JSON.stringify({ date: config.syncRoom, data: state }) });
                         }
+                    } else {
+                        await fetch(GOOGLE_APP_SCRIPT, { method: 'POST', body: JSON.stringify({ date: config.syncRoom, data: state }) });
                     }
                 }
-            } catch (e) { console.error(e); }
+                setSyncLabelStatus("bg-zinc-900 text-emerald-400 border border-zinc-800", "cloud-check");
+            } catch (e) { 
+                setSyncLabelStatus("bg-red-950/40 text-red-400 border border-red-900/50", "cloud-off"); 
+            }
             finally { updateUI(); }
         }
 
         async function triggerSilentCloudUpload() {
             if (!config.syncRoom) return;
+            setSyncLabelStatus("bg-zinc-900 text-amber-400 border border-zinc-800", "refresh-cw", true);
             try {
                 await fetch(GOOGLE_APP_SCRIPT, { method: 'POST', body: JSON.stringify({ date: config.syncRoom, data: state }) });
-            } catch (e) {}
+                setSyncLabelStatus("bg-zinc-900 text-emerald-400 border border-zinc-800", "cloud-check");
+            } catch (e) { 
+                setSyncLabelStatus("bg-red-950/40 text-red-400 border border-red-900/50", "cloud-off"); 
+            }
         }
 
-        function triggerManualSync() { hapticFeedback(); loadAndMergeDataFromCloudSystem(); showToast('Synchronizace', 'Ručně staženo z cloudu.', 'info'); }
+        function triggerManualSync() { 
+            hapticFeedback(); 
+            showToast('Synchronizace', 'Stahuji a odesílám data na cloud...', 'sync');
+            loadAndMergeDataFromCloudSystem(); 
+        }
 
         function handleWipeAllAppData() {
             if(confirm('Opravdu resetovat vše? Smaže se ti to i v cloudu.')) {
@@ -1190,7 +1231,7 @@
         triggerSelectFoodCategory('Oběd');
         triggerStarSelect(5);
         loadAndMergeDataFromCloudSystem();
-        startNotificationEngine(); // Spuštění enginu hned při načtení
+        startNotificationEngine(); 
     </script>
 </body>
 </html>
