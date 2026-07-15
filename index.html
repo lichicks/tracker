@@ -103,7 +103,6 @@
 </head>
 <body class="pb-32 relative">
 
-    <!-- Oprava horního pozadí proti černému okraji při overscrollu -->
     <div class="fixed top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#09090b] via-[#09090b]/90 to-transparent pointer-events-none z-0"></div>
 
     <!-- SPLASH SCREEN -->
@@ -187,7 +186,6 @@
                     </div>
                     <p id="dash-text-water" class="text-sm font-black text-white">0 / 2100 ml</p>
                 </div>
-                <!-- Další dashboard karty vynechány pro stručnost, v kódu samozřejmě zůstávají -->
                 <div onclick="switchTab('vitamins')" class="glass-card rounded-2xl p-4.5 cursor-pointer hover:border-zinc-700 transition-all flex justify-between items-center active:scale-98">
                     <div class="space-y-2 flex-1">
                         <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2"><i data-lucide="pill" class="w-4 h-4 text-purple-400"></i> Suplementace</h3>
@@ -280,9 +278,10 @@
                             <option value="2">2x denně</option>
                             <option value="3">3x denně</option>
                             <option value="4">4x denně</option>
+                            <option value="5">5x denně</option>
                         </select>
                     </div>
-                    <!-- Nový výběr času pro 1x denně -->
+                    <!-- Výběr času pro 1x denně -->
                     <div id="custom-vit-time-wrapper" class="flex gap-2">
                         <select id="custom-vit-time-select" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
                             <option value="Ráno">Ráno (09:00)</option>
@@ -300,7 +299,6 @@
 
         <!-- ================= OBRAZOVKA 4: DETAIL JÍDLA ================= -->
         <div id="view-food" class="space-y-4 tab-view hidden">
-            <!-- Existující kód Jídla beze změny... -->
             <button onclick="switchTab('dashboard')" class="text-xs text-zinc-400 flex items-center space-x-1 hover:text-white transition-colors active:scale-95"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i><span>Zpět na přehled</span></button>
             <div class="glass-card rounded-3xl p-5 space-y-4">
                 <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider">Zaznamenat stravu</h2>
@@ -359,6 +357,27 @@
                         <a id="downloadAnchorElem" style="display:none"></a>
                     </div>
                     <button onclick="recoverLostData()" class="w-full bg-zinc-900 border border-zinc-800 py-2 rounded-xl text-[10px] font-bold text-zinc-500 active:scale-95 transition-all">Prohledat starou paměť iPhonu</button>
+                </div>
+            </div>
+
+            <!-- NÁVRAT PUSH NOTIFIKACÍ ZPĚT DO KÓDU -->
+            <div class="glass-card rounded-3xl p-5 space-y-4">
+                <h2 class="font-bold text-xs text-zinc-400 uppercase tracking-wider">Systém push notifikací</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800">
+                        <div>
+                            <p class="text-xs font-bold text-zinc-200">Hlavní spínač upomínek</p>
+                            <p class="text-[9px] text-zinc-500 font-medium mt-1">Noční klid (22:00-07:00) je automatický</p>
+                        </div>
+                        <button onclick="handleToggleNotifSystem()" id="btn-toggle-notifs" class="px-3 py-1.5 bg-zinc-800 text-zinc-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform">Vypnuto</button>
+                    </div>
+                    <div id="notif-interval-wrapper" class="space-y-2 opacity-40 pointer-events-none transition-opacity">
+                        <div class="grid grid-cols-3 gap-2 text-[10px] font-bold text-center">
+                            <button onclick="handleChangeNotifTime(60)" id="int-btn-60" class="bg-zinc-900 border border-zinc-800 py-2 rounded-lg active:scale-95 transition-transform">1 Hodina</button>
+                            <button onclick="handleChangeNotifTime(120)" id="int-btn-120" class="bg-zinc-900 border border-zinc-800 py-2 rounded-lg active:scale-95 transition-transform">2 Hodiny</button>
+                            <button onclick="handleChangeNotifTime(180)" id="int-btn-180" class="bg-zinc-900 border border-zinc-800 py-2 rounded-lg active:scale-95 transition-transform">3 Hodiny</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -444,6 +463,7 @@
         let currentFoodEmoji = '🍳';
         let debounceTimer = null;
         let previousWaterPct = 0;
+        let globalNotifTimer = null;
 
         // Splash Screen
         setTimeout(() => {
@@ -490,24 +510,20 @@
             
             if(!pill || !container) return;
 
-            // Dynamická barva a glow efekt podle denní doby
             let colorClass = "";
             let glowColor = "";
 
             if (hr < 12) {
-                // Ráno: silné oranžové světlo
                 colorClass = "from-amber-400 to-orange-500";
                 glowColor = "rgba(251, 191, 36, 0.6)"; 
                 container.style.boxShadow = 'inset 0 1px 3px rgba(0,0,0,0.5)';
                 pill.style.boxShadow = `0 0 15px ${glowColor}, 0 0 5px ${glowColor}`;
             } else if (hr < 18) {
-                // Odpoledne: modré světlo, střední glow
                 colorClass = "from-sky-400 to-blue-600";
                 glowColor = "rgba(56, 189, 248, 0.4)";
                 container.style.boxShadow = 'inset 0 1px 3px rgba(0,0,0,0.5)';
                 pill.style.boxShadow = `0 0 10px ${glowColor}`;
             } else {
-                // Večer: Tmavší fialová barva uvnitř, glow je už jen na kontejneru
                 colorClass = "from-indigo-600 to-purple-800";
                 pill.style.boxShadow = 'none';
                 container.style.boxShadow = `0 0 12px rgba(99, 102, 241, 0.5), inset 0 0 6px rgba(99, 102, 241, 0.3)`;
@@ -528,7 +544,6 @@
                 if (!startTime) startTime = timestamp;
                 const progress = Math.min((timestamp - startTime) / duration, 1);
                 
-                // Rychlejší a přesnější křivka (zastaví hned jak dorazí na 1)
                 const ease = 1 - Math.pow(1 - progress, 4); 
                 const current = Math.round(start + (end - start) * ease);
                 
@@ -565,7 +580,7 @@
                 sliderAnimFrame = null;
                 return;
             }
-            sliderDisplayVal += diff * 0.3; // Rychlost protáčení
+            sliderDisplayVal += diff * 0.3; 
             
             let yOffset = (Math.random() - 0.5) * (Math.abs(diff) > 20 ? 3 : 0);
             let display = document.getElementById('custom-water-val-display');
@@ -662,7 +677,6 @@
             commitLocalChange();
         }
 
-        // ================= VÝBĚR ČASU SUPLEMENTU =================
         function toggleVitTimeSelect(val) {
             let timeSelect = document.getElementById('custom-vit-time-wrapper');
             if(parseInt(val) === 1) {
@@ -685,6 +699,14 @@
             document.getElementById('custom-vit-name-input').value = '';
             initDayStructure(activeViewDate); state[activeViewDate].vitamins[id] = [];
             commitLocalChange();
+        }
+
+        function handleRemoveCustomSuplement(id) {
+            if(confirm("Opravdu trvale smazat suplement z nabídky?")) {
+                config.customSuplementsList = config.customSuplementsList.filter(s => s.id !== id);
+                localStorage.setItem('trackerrr_config_v10', JSON.stringify(config));
+                commitLocalChange();
+            }
         }
 
         function triggerSelectFoodCategory(cat) {
@@ -726,7 +748,6 @@
 
         function switchTab(tabId) {
             hapticFeedback();
-            
             if(tabId === 'dashboard') previousWaterPct = 0; 
 
             document.querySelectorAll('.tab-view').forEach(v => {
@@ -754,12 +775,81 @@
             if (freq === 1) {
                 if(preferredTime === 'Ráno') return ["09:00"];
                 if(preferredTime === 'Během dne') return ["13:00"];
-                return ["21:00"]; // Default večer
+                return ["21:00"]; // Default
             }
             if (freq === 2) return ["09:00", "21:00"];
             if (freq === 3) return ["09:00", "15:00", "21:00"];
             if (freq === 4) return ["09:00", "13:00", "17:00", "21:00"];
+            // Tady to v minulé verzi chybělo! Pro tvůj 5x denně bráný Kreatin:
+            if (freq === 5) return ["09:00", "12:00", "15:00", "18:00", "21:00"];
+            
             let t = []; for(let i=0; i<freq; i++) t.push("Dávka "+(i+1)); return t;
+        }
+
+        // ================= NOTIFIKAČNÍ ENGINE =================
+        function handleToggleNotifSystem() {
+            hapticFeedback();
+            if (!config.notifEnabled) {
+                Notification.requestPermission().then(p => { 
+                    if (p === "granted") { 
+                        config.notifEnabled = true; localStorage.setItem('trackerrr_config_v10', JSON.stringify(config)); startNotificationEngine(); updateUI(); 
+                        showToast('Notifikace zapnuty', 'Připomenutí suplementů a pití je aktivní (22:00-07:00 tichý režim).', 'success');
+                    } else {
+                        showToast('Přístup zamítnut', 'Povolte notifikace pro tuto webovou aplikaci v Nastavení vašeho iPhonu.', 'error');
+                    }
+                });
+            } else { 
+                config.notifEnabled = false; localStorage.setItem('trackerrr_config_v10', JSON.stringify(config)); stopNotificationEngine(); updateUI(); 
+                showToast('Notifikace vypnuty', 'Již tě nebudeme rušit.', 'info');
+            }
+        }
+
+        function handleChangeNotifTime(m) { 
+            hapticFeedback(); config.notifInterval = m; localStorage.setItem('trackerrr_config_v10', JSON.stringify(config)); startNotificationEngine(); updateUI(); 
+        }
+        
+        function startNotificationEngine() { 
+            stopNotificationEngine(); 
+            if (!config.notifEnabled) return; 
+            globalNotifTimer = setInterval(() => { 
+                let now = new Date(); let hr = now.getHours();
+                if (hr >= 22 || hr < 7) return; 
+                
+                let todayData = state[today];
+                if(!todayData) return;
+
+                if (todayData.water < WATER_GOAL) {
+                    let lastNotifFired = parseInt(localStorage.getItem('last_notif_water') || '0');
+                    if (Date.now() - lastNotifFired > config.notifInterval * 60 * 1000) {
+                        new Notification("Kde máš vodu? 💧", { body: "Napij se, ať držíš optimální pitný režim." });
+                        localStorage.setItem('last_notif_water', Date.now().toString());
+                    }
+                }
+
+                config.customSuplementsList.forEach(v => {
+                    let schedArr = getVitSchedule(v.frequency, v.preferredTime);
+                    let takenCount = (todayData.vitamins[v.id] || []).length;
+                    let expectedCount = 0;
+                    schedArr.forEach(t => {
+                        if(t.includes(':')) {
+                            let [tHr, tMin] = t.split(':');
+                            if (hr > parseInt(tHr) || (hr === parseInt(tHr) && now.getMinutes() >= 0)) expectedCount++;
+                        }
+                    });
+
+                    if (takenCount < expectedCount) {
+                        let lastVitFired = parseInt(localStorage.getItem('last_notif_' + v.id) || '0');
+                        if (Date.now() - lastVitFired > config.notifInterval * 60 * 1000) {
+                            new Notification(`Je čas na ${v.name}! ⚡`, { body: `Máš zpoždění s dávkou. Otevři Trackerrr.` });
+                            localStorage.setItem('last_notif_' + v.id, Date.now().toString());
+                        }
+                    }
+                });
+            }, 60000); 
+        }
+
+        function stopNotificationEngine() { 
+            if(globalNotifTimer) { clearInterval(globalNotifTimer); globalNotifTimer = null; } 
         }
 
         function updateUI(skipAnimation = false) {
@@ -772,7 +862,6 @@
                 
                 let pctElem = document.getElementById('circle-pct-value');
                 if (pct !== previousWaterPct && !skipAnimation) {
-                    // Animace teď trvá 1.5 sekundy (původně skoro 3) a zastaví svižněji
                     animateCounter(pctElem, previousWaterPct, pct, 1500); 
                     previousWaterPct = pct;
                 } else {
@@ -830,7 +919,7 @@
                     vCont.innerHTML = config.customSuplementsList.map(v => {
                         let count = (data.vitamins[v.id] || []).length; 
                         let circlesHtml = '';
-                        let schedArr = getVitSchedule(v.frequency, v.preferredTime); // VYUŽITÍ PREFERENCE
+                        let schedArr = getVitSchedule(v.frequency, v.preferredTime);
 
                         for(let i=0; i < v.frequency; i++) {
                             let active = count > i;
@@ -918,15 +1007,6 @@
                     document.getElementById('streak-count').innerText = streak;
                 }
 
-                let box = document.getElementById('favorite-meals-box-list');
-                if(box) {
-                    let favs = []; for (let day in state) { if (state[day].food) state[day].food.forEach(f => { if (f.stars >= 4) favs.push(f); }); }
-                    let uniq = []; let seen = new Set();
-                    favs.forEach(item => { let clean = item.name.replace(/.*:\s*/, '').trim().toLowerCase(); if(!seen.has(clean)) { seen.add(clean); uniq.push(item); } });
-                    if(uniq.length > 0) { box.innerHTML = uniq.slice(0, 4).map(f => `<div class="bg-zinc-900/40 border border-zinc-800 p-2.5 rounded-xl flex justify-between px-3"><span>${f.emoji} ${f.name}</span><span class="text-amber-400 font-bold font-mono drop-shadow-[0_0_5px_rgba(251,191,36,0.5)]">★ ${f.stars}</span></div>`).join(''); }
-                    else { box.innerHTML = `<p class="text-center text-zinc-600 text-[10px] py-2">Zatím bez oblíbených jídel.</p>`; }
-                }
-
                 const bCont = document.getElementById('analytics-bars-wrapper');
                 if(bCont) {
                     let bHtml = ''; let lHtml = '';
@@ -959,6 +1039,21 @@
                     bCont.innerHTML = bHtml; document.getElementById('analytics-labels-wrapper').innerHTML = lHtml;
                 }
 
+                // AKTUALIZACE UI PRO NOTIFIKACE (VRÁCENO ZPĚT!)
+                const btn = document.getElementById('btn-toggle-notifs'); const notifbox = document.getElementById('notif-interval-wrapper');
+                if(btn) {
+                    document.querySelectorAll('[id^="int-btn-"]').forEach(b => b.className = "bg-zinc-900 border border-zinc-800 py-1.5 rounded-lg text-zinc-500 active:scale-95 transition-transform");
+                    if (config.notifEnabled) {
+                        btn.innerText = "Aktivní"; btn.className = "px-3 py-1.5 bg-emerald-500/20 text-emerald-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform shadow-[0_0_10px_rgba(16,185,129,0.2)]";
+                        if(notifbox) notifbox.classList.remove('opacity-40', 'pointer-events-none');
+                        let act = document.getElementById('int-btn-' + config.notifInterval);
+                        if(act) act.className = "bg-blue-500/20 border border-blue-500/50 py-1.5 rounded-lg text-blue-400 active:scale-95 transition-transform";
+                    } else {
+                        btn.innerText = "Vypnuto"; btn.className = "px-3 py-1.5 bg-zinc-800 text-zinc-400 font-bold rounded-lg text-[10px] uppercase active:scale-95 transition-transform shadow-inner";
+                        if(notifbox) notifbox.classList.add('opacity-40', 'pointer-events-none');
+                    }
+                }
+
                 if(document.getElementById('cloud-sync-room-input')) document.getElementById('cloud-sync-room-input').value = config.syncRoom || '';
                 try { lucide.createIcons(); } catch(e){}
             } catch(fatalError) { console.error(fatalError); }
@@ -984,7 +1079,6 @@
                 try {
                     const importedState = JSON.parse(e.target.result);
                     if (importedState && importedState.lastUpdated) {
-                        // Spojíme importovaná data se stávajícími (nebo je přepíšeme)
                         state = mergeCloudAndLocal(state, importedState);
                         commitLocalChange();
                         showToast('Import dokončen', 'Tvá data byla úspěšně nahrána zpět.', 'success');
@@ -1096,6 +1190,7 @@
         triggerSelectFoodCategory('Oběd');
         triggerStarSelect(5);
         loadAndMergeDataFromCloudSystem();
+        startNotificationEngine(); // Spuštění enginu hned při načtení
     </script>
 </body>
 </html>
